@@ -28,6 +28,8 @@ function App() {
         <Chip label="공부" color="purple" />
         <Chip label="공부" color="cyan" />
         <Chip label="공부" color="apricot" />
+        <Chip label="공부" size="small" />
+        <Chip label="공부" color="apricot" size="small" />
       </section>
 
       <section className="flex flex-col gap-2">

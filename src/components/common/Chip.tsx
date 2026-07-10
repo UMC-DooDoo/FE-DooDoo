@@ -17,15 +17,24 @@ const chipColors: Record<ChipColor, string> = {
   apricot: 'text-apricot-500 bg-apricot-100',
 }
 
+type ChipSize = 'medium' | 'small'
+
+// 피그마: padding 4px 8px, radius 8px / medium 폰트 12(높이 20), small 폰트 10(높이 18)
+const chipSizes: Record<ChipSize, string> = {
+  medium: 'text-xs',
+  small: 'text-[10px]',
+}
+
 interface ChipProps {
   label: string
   color?: ChipColor
+  size?: ChipSize
 }
 
-function Chip({ label, color = 'blue' }: ChipProps) {
+function Chip({ label, color = 'blue', size = 'medium' }: ChipProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${chipColors[color]}`}
+      className={`inline-flex items-center justify-center rounded-lg px-2 py-1 leading-none font-medium ${chipSizes[size]} ${chipColors[color]}`}
     >
       {label}
     </span>
@@ -33,4 +42,4 @@ function Chip({ label, color = 'blue' }: ChipProps) {
 }
 
 export default Chip
-export type { ChipColor }
+export type { ChipColor, ChipSize }
