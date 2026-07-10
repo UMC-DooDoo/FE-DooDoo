@@ -6,6 +6,7 @@ type ChipColor =
   | 'purple'
   | 'cyan'
   | 'apricot'
+  | 'red'
 
 const chipColors: Record<ChipColor, string> = {
   blue: 'text-blue-500 bg-blue-50',
@@ -15,6 +16,7 @@ const chipColors: Record<ChipColor, string> = {
   purple: 'text-purple-500 bg-purple-100',
   cyan: 'text-cyan-500 bg-cyan-100',
   apricot: 'text-apricot-500 bg-apricot-100',
+  red: 'text-red-500 bg-red-100',
 }
 
 type ChipSize = 'medium' | 'small'
@@ -34,7 +36,7 @@ interface ChipProps {
 function Chip({ label, color = 'blue', size = 'medium' }: ChipProps) {
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-lg px-2 py-1 leading-none font-medium ${chipSizes[size]} ${chipColors[color]}`}
+      className={`inline-flex items-center justify-center rounded-sm px-2 py-1 leading-none font-medium ${chipSizes[size]} ${chipColors[color]}`}
     >
       {label}
     </span>
