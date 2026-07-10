@@ -11,7 +11,7 @@ interface HeaderProps {
 
 function Header({ title, onPrev, onNext, className = '' }: HeaderProps) {
   return (
-    <header className={`flex w-full items-center justify-between ${className}`}>
+    <header className={`flex w-full items-center justify-center gap-4 ${className}`}>
       <ChevronButton
         direction="left"
         label="이전"
