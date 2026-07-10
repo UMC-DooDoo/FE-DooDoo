@@ -7,6 +7,7 @@ interface ListItemProps {
   chipLabel?: string
   chipColor?: AccentColor
   onToggle?: () => void
+  onDelete?: () => void
 }
 
 function ListItem({
@@ -15,6 +16,7 @@ function ListItem({
   chipLabel,
   chipColor,
   onToggle,
+  onDelete,
 }: ListItemProps) {
   return (
     <div
@@ -50,6 +52,24 @@ function ListItem({
         {label}
       </span>
       {chipLabel && <Chip label={chipLabel} color={chipColor} />}
+      {onDelete && (
+        <button
+          type="button"
+          aria-label="삭제"
+          onClick={onDelete}
+          className="shrink-0 p-1 text-neutral-300 active:text-danger"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M3 4.5h10M6.5 4V3h3v1M5 4.5l.5 8h5l.5-8"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }

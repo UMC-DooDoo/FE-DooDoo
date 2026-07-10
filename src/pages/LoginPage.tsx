@@ -4,15 +4,29 @@ import Input from "../components/common/Input";
 import Button from "../components/common/Button";
 import Card from "../components/common/Card";
 import PhoneFrame from "../components/layout/PhoneFrame";
+import { login } from "../api/auth";
+import { ApiError } from "../types/api";
 
 function LoginPage() {
   const navigate = useNavigate();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleLogin() {
-    // TODO: 로그인 API 연동
-    navigate("/");
+  async function handleLogin() {
+    setError("");
+    setLoading(true);
+    try {
+      await login(id, password);
+      navigate("/");
+    } catch (e) {
+      setError(
+        e instanceof ApiError ? e.message : "로그인 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -52,12 +66,14 @@ function LoginPage() {
           </label>
         </div>
 
+        {error && <p className="mt-3 text-xs text-danger">{error}</p>}
+
         <Button
           className="mt-8"
-          disabled={!id || !password}
+          disabled={!id || !password || loading}
           onClick={handleLogin}
         >
-          로그인
+          {loading ? "로그인 중..." : "로그인"}
         </Button>
 
         <Card className="mt-4 flex items-center justify-between gap-3">

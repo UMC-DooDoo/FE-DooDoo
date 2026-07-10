@@ -56,13 +56,33 @@ export const ACCENT_TEXT: Record<AccentColor, string> = {
   neutral: "text-neutral-500",
 };
 
+// 프론트 색 키 <-> 서버 색 enum 매핑.
+// 단순 대소문자 변환이 아님에 주의: apricot <-> ORANGE.
+const ACCENT_TO_SERVER: Record<AccentColor, string> = {
+  blue: "BLUE",
+  green: "GREEN",
+  apricot: "ORANGE",
+  purple: "PURPLE",
+  pink: "PINK",
+  cyan: "CYAN",
+  yellow: "YELLOW",
+  red: "RED",
+  neutral: "GRAY",
+};
+
+const SERVER_TO_ACCENT: Record<string, AccentColor> = Object.fromEntries(
+  Object.entries(ACCENT_TO_SERVER).map(([accent, server]) => [
+    server,
+    accent as AccentColor,
+  ]),
+);
+
+/** 프론트 색 키 -> 서버 enum. 예: 'apricot' -> 'ORANGE' */
 export function toServerColor(accent: AccentColor): string {
-  return accent.toUpperCase();
+  return ACCENT_TO_SERVER[accent] ?? "GRAY";
 }
 
+/** 서버 enum -> 프론트 색 키. 모르는 값은 neutral. 예: 'ORANGE' -> 'apricot' */
 export function toAccentColor(server: string): AccentColor {
-  const lower = server?.toLowerCase();
-  return (ACCENT_COLORS as string[]).includes(lower)
-    ? (lower as AccentColor)
-    : "neutral";
+  return SERVER_TO_ACCENT[server?.toUpperCase()] ?? "neutral";
 }

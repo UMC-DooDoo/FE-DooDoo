@@ -1,6 +1,6 @@
 import Card from '../common/Card'
 import ProgressBar from '../common/ProgressBar'
-import { ACCENT_BG, ACCENT_TEXT, CATEGORY_COLOR } from '../../constants/category'
+import { ACCENT_BG, ACCENT_TEXT } from '../../constants/category'
 import { completionRate } from '../../types/stats'
 import type { CategoryStat } from '../../types/stats'
 
@@ -23,7 +23,7 @@ function CategoryRateCard({ stats }: CategoryRateCardProps) {
     <Card title="분야별 달성률">
       <ul className="flex flex-col gap-4">
         {stats.map((stat) => {
-          const color = CATEGORY_COLOR[stat.category]
+          const color = stat.color
           const rate = completionRate(stat)
 
           return (

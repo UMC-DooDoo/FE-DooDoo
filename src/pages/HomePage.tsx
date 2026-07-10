@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Toggle from "../components/common/Toggle";
 import ListItem from "../components/common/ListItem";
 import Header from "../components/common/Header";
@@ -7,9 +7,10 @@ import DateCell from "../components/common/DateCell";
 import AddTaskModal from "../components/home/AddTaskModal";
 import AddCategoryModal from "../components/home/AddCategoryModal";
 import { useHomeStore } from "../store/homeStore";
+import { confirmModal } from "../store/confirmModalStore";
 import { toKey, addDays } from "../utils/date";
 import { ACCENT_BG } from "../constants/category";
-import { PRIORITIES, PRIORITY_COLOR } from "../constants/priority";
+import { PRIORITY_COLOR } from "../constants/priority";
 import type { Category } from "../types/todo";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -31,13 +32,19 @@ function getWeekOf(date: Date) {
 
 function HomePage() {
   const {
-    todos,
     categories,
+    calendarDays,
+    groups,
+    total,
+    completed,
     view,
     grouping,
     selected,
     viewYM,
+    error,
+    init,
     toggleTodo,
+    deleteTodo,
     addTodo,
     addCategory,
     selectDay,
@@ -51,49 +58,42 @@ function HomePage() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryHint, setNewCategoryHint] = useState<string | null>(null);
 
-  const categoryColor = (name: string) =>
-    categories.find((c) => c.name === name)?.color ?? "blue";
+  // 최초 진입 시 데이터 로드
+  useEffect(() => {
+    init();
+  }, [init]);
 
-  const byDate = new Map<string, typeof todos>();
-  for (const todo of todos) {
-    const list = byDate.get(todo.date) ?? [];
-    list.push(todo);
-    byDate.set(todo.date, list);
-  }
+  // 날짜별 점 표시용 맵 (우선순위 색)
+  const calendarMap = new Map(calendarDays.map((d) => [d.date, d]));
 
-  function handleAddTodo(data: Parameters<typeof addTodo>[0]) {
-    addTodo(data);
+  function handleAddTodo(data: {
+    title: string;
+    category: string;
+    priority: Parameters<typeof addTodo>[0]["priority"];
+  }) {
+    const categoryId = categories.find((c) => c.name === data.category)?.id;
+    if (categoryId === undefined) return;
+    addTodo({ title: data.title, categoryId, priority: data.priority });
     setShowAddTask(false);
   }
 
   function handleAddCategory(cat: Category) {
-    addCategory(cat);
+    // 서버에 생성하고 방금 만든 분야를 모달에서 자동 선택
+    addCategory(cat.name, cat.color);
     setNewCategoryHint(cat.name);
     setShowAddCategory(false);
   }
 
+  async function handleDeleteTodo(id: number) {
+    const ok = await confirmModal({
+      title: "할 일을 삭제할까요?",
+      description: "삭제하면 되돌릴 수 없습니다.",
+    });
+    if (ok) deleteTodo(id);
+  }
+
   const days =
-    view === "월"
-      ? getMonthGrid(viewYM.year, viewYM.month)
-      : getWeekOf(selected);
-
-  const selectedTodos = byDate.get(toKey(selected)) ?? [];
-  const doneCount = selectedTodos.filter((t) => t.done).length;
-
-  const groups =
-    grouping === "우선순위"
-      ? PRIORITIES.map((p) => ({
-          key: String(p),
-          label: `${p}순위`,
-          dot: ACCENT_BG[PRIORITY_COLOR[p]] as string | undefined,
-          items: selectedTodos.filter((t) => t.priority === p),
-        })).filter((g) => g.items.length > 0)
-      : [...new Set(selectedTodos.map((t) => t.category))].map((c) => ({
-          key: c,
-          label: c,
-          dot: undefined as string | undefined,
-          items: selectedTodos.filter((t) => t.category === c),
-        }));
+    view === "월" ? getMonthGrid(viewYM.year, viewYM.month) : getWeekOf(selected);
 
   const dateTitle = `${selected.getMonth() + 1}월 ${selected.getDate()}일 ${WEEKDAYS[selected.getDay()]}요일`;
 
@@ -107,42 +107,12 @@ function HomePage() {
             value={view}
             onChange={setView}
             icons={[
-              <svg
-                key="m"
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-              >
-                <rect
-                  x="2"
-                  y="3"
-                  width="12"
-                  height="11"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M2 6.5H14M5.5 1.5V4M10.5 1.5V4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+              <svg key="m" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M2 6.5H14M5.5 1.5V4M10.5 1.5V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>,
-              <svg
-                key="w"
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-              >
-                <path
-                  d="M3 4.5H13M3 8H13M3 11.5H13"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+              <svg key="w" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M3 4.5H13M3 8H13M3 11.5H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>,
             ]}
           />
@@ -178,13 +148,10 @@ function HomePage() {
             const key = toKey(date);
             const inMonth = date.getMonth() === viewYM.month;
             const isSelected = key === toKey(selected);
-            const dayTodos = byDate.get(key) ?? [];
-            const allDone =
-              dayTodos.length > 0 && dayTodos.every((t) => t.done);
-            const dots = [...new Set(dayTodos.map((t) => t.category))].slice(
-              0,
-              3,
-            );
+            const summary = calendarMap.get(key);
+            const dots = (summary?.priorities ?? [])
+              .slice(0, 3)
+              .map((p) => ACCENT_BG[PRIORITY_COLOR[p]]);
 
             const textClassName = !inMonth
               ? "text-neutral-200"
@@ -200,8 +167,8 @@ function HomePage() {
                 day={date.getDate()}
                 selected={isSelected}
                 textClassName={textClassName}
-                dotColors={dots.map((c) => ACCENT_BG[categoryColor(c)])}
-                dimDots={allDone}
+                dotColors={dots}
+                dimDots={summary?.allCompleted ?? false}
                 onClick={() => selectDay(date)}
               />
             );
@@ -214,12 +181,12 @@ function HomePage() {
           <div>
             <p className="text-xs text-neutral-400">{dateTitle}</p>
             <p className="text-lg font-bold">
-              {selectedTodos.length}개의 할 일
-              {selectedTodos.length > 0 && (
+              {total}개의 할 일
+              {total > 0 && (
                 <>
                   {" / "}
                   <span className="text-xs font-medium text-blue-500">
-                    {doneCount}/{selectedTodos.length}개 완료
+                    {completed}/{total}개 완료
                   </span>
                 </>
               )}
@@ -232,7 +199,9 @@ function HomePage() {
           />
         </div>
 
-        {selectedTodos.length === 0 ? (
+        {error && <p className="mt-3 text-xs text-danger">{error}</p>}
+
+        {groups.length === 0 ? (
           <p className="py-12 text-center text-sm text-neutral-300">
             등록된 할 일이 없습니다.
           </p>
@@ -241,15 +210,12 @@ function HomePage() {
             {groups.map((group) => (
               <div key={group.key} className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5 px-1 pt-1">
-                  {group.dot && (
-                    <span className={`h-2 w-2 rounded-full ${group.dot}`} />
-                  )}
+                  <span className={`h-2 w-2 rounded-full ${group.dot}`} />
                   <span className="text-sm font-semibold text-neutral-600">
                     {group.label}
                   </span>
                   <span className="text-xs text-neutral-300">
-                    {group.items.filter((t) => t.done).length}/
-                    {group.items.length}
+                    {group.completed}/{group.total}
                   </span>
                 </div>
                 {group.items.map((todo) => (
@@ -258,8 +224,9 @@ function HomePage() {
                     label={todo.title}
                     checked={todo.done}
                     chipLabel={todo.category}
-                    chipColor={categoryColor(todo.category)}
+                    chipColor={todo.color}
                     onToggle={() => toggleTodo(todo.id)}
+                    onDelete={() => handleDeleteTodo(todo.id)}
                   />
                 ))}
               </div>
@@ -274,12 +241,7 @@ function HomePage() {
           className="sticky bottom-20 z-10 mt-auto mb-4 flex h-12 w-12 items-center justify-center self-end rounded-lg bg-blue-500 text-white shadow-lg active:bg-blue-600"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M10 4V16M4 10H16"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
+            <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
       </section>

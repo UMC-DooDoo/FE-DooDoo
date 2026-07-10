@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Header from "../components/common/Header";
 import PageTitle from "../components/common/PageTitle";
 import SummaryBanner from "../components/stats/SummaryBanner";
@@ -6,7 +7,13 @@ import CompletionCard from "../components/stats/CompletionCard";
 import DailyChartCard from "../components/stats/DailyChartCard";
 import CategoryRateCard from "../components/stats/CategoryRateCard";
 import PriorityRateCard from "../components/stats/PriorityRateCard";
-import { completionRate } from "../types/stats";
+import {
+  getMonthlySummary,
+  getDailyStats,
+  getCategoryRates,
+  getPriorityRates,
+} from "../api/statistics";
+import type { Priority } from "../constants/priority";
 import type {
   CategoryStat,
   DailyStat,
@@ -14,48 +21,20 @@ import type {
   PriorityStat,
 } from "../types/stats";
 
-// TODO: API 연동 시 react-query 로 교체
-const MOCK_STATS: MonthlyStats = { total: 20, completed: 11 };
-
-const MOCK_DAILY_PATTERN: Record<number, [total: number, completed: number]> = {
-  3: [3, 2],
-  5: [3, 3],
-  8: [2, 1],
-  10: [4, 3],
-  14: [2, 1],
-  16: [2, 1],
-  18: [2, 1],
-  24: [2, 0],
+// 서버 우선순위 enum -> 1~4
+const PRIORITY_NUM: Record<string, Priority> = {
+  FIRST: 1,
+  SECOND: 2,
+  THIRD: 3,
+  FOURTH: 4,
 };
 
-/** 그 달의 일수만큼 채운다. `new Date(y, m, 0)` 은 m월의 마지막 날이다. */
-function buildMockDaily(year: number, month: number): DailyStat[] {
-  const daysInMonth = new Date(year, month, 0).getDate();
-
-  return Array.from({ length: daysInMonth }, (_, i) => {
-    const day = i + 1;
-    const [total, completed] = MOCK_DAILY_PATTERN[day] ?? [0, 0];
-    return { day, total, completed };
-  });
-}
-
-const MOCK_CATEGORY: CategoryStat[] = [
-  { category: "공부", total: 5, completed: 2 },
-  { category: "운동", total: 4, completed: 3 },
-  { category: "일", total: 4, completed: 2 },
-  { category: "집안일", total: 4, completed: 2 },
-  { category: "일정", total: 3, completed: 2 },
-];
-
-const MOCK_PRIORITY: PriorityStat[] = [
-  { priority: 1, total: 7, completed: 3 },
-  { priority: 2, total: 7, completed: 4 },
-  { priority: 3, total: 5, completed: 3 },
-  { priority: 4, total: 1, completed: 1 },
-];
-
 function StatsPage() {
-  const [{ year, month }, setMonth] = useState({ year: 2026, month: 6 });
+  const now = new Date();
+  const [{ year, month }, setMonth] = useState({
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+  });
 
   const moveMonth = (delta: number) => {
     setMonth((prev) => {
@@ -64,7 +43,47 @@ function StatsPage() {
     });
   };
 
-  const rate = completionRate(MOCK_STATS);
+  const summaryQ = useQuery({
+    queryKey: ["stats", "summary", year, month],
+    queryFn: () => getMonthlySummary(year, month),
+  });
+  const dailyQ = useQuery({
+    queryKey: ["stats", "daily", year, month],
+    queryFn: () => getDailyStats(year, month),
+  });
+  const categoryQ = useQuery({
+    queryKey: ["stats", "category", year, month],
+    queryFn: () => getCategoryRates(year, month),
+  });
+  const priorityQ = useQuery({
+    queryKey: ["stats", "priority", year, month],
+    queryFn: () => getPriorityRates(year, month),
+  });
+
+  const stats: MonthlyStats = {
+    total: summaryQ.data?.totalCount ?? 0,
+    completed: summaryQ.data?.completedCount ?? 0,
+  };
+  const rate = summaryQ.data?.completionRate ?? 0;
+
+  const daily: DailyStat[] = (dailyQ.data ?? []).map((d) => ({
+    day: Number(d.date.split("-")[2]),
+    total: d.completedCount + d.incompleteCount,
+    completed: d.completedCount,
+  }));
+
+  const category: CategoryStat[] = (categoryQ.data ?? []).map((c) => ({
+    category: c.categoryName,
+    color: c.color,
+    total: c.totalCount,
+    completed: c.completedCount,
+  }));
+
+  const priority: PriorityStat[] = (priorityQ.data ?? []).map((p) => ({
+    priority: PRIORITY_NUM[p.priority] ?? 1,
+    total: p.totalCount,
+    completed: p.completedCount,
+  }));
 
   return (
     <div className="flex flex-col gap-4 px-5 pt-4 pb-6">
@@ -78,14 +97,10 @@ function StatsPage() {
       />
 
       <SummaryBanner rate={rate} />
-
-      <CompletionCard stats={MOCK_STATS} />
-
-      <DailyChartCard days={buildMockDaily(year, month)} />
-
-      <CategoryRateCard stats={MOCK_CATEGORY} />
-
-      <PriorityRateCard stats={MOCK_PRIORITY} />
+      <CompletionCard stats={stats} />
+      <DailyChartCard days={daily} />
+      <CategoryRateCard stats={category} />
+      <PriorityRateCard stats={priority} />
     </div>
   );
 }
