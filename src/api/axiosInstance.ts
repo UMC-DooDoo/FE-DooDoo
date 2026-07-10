@@ -3,8 +3,10 @@ import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import type { ApiResponse } from "../types/api";
 import { ApiError } from "../types/api";
 
-// baseURL 을 비워 두면 같은 출처(localhost)로 요청 → Vite dev 프록시가
-// 백엔드로 대신 전달(CORS 우회). 배포 시에는 .env 의 VITE_API_BASE_URL 로 절대주소 주입.
+// baseURL 을 비워 두면 항상 같은 출처로 요청이 나간다.
+// - 로컬: vite.config.ts 의 dev 프록시(VITE_PROXY_TARGET)가 백엔드로 대신 전달.
+// - 배포: vercel.json 의 rewrites 가 Vercel 서버 쪽에서 백엔드로 대신 전달.
+// VITE_API_BASE_URL 을 채우면 프록시를 건너뛰고 axios 가 그 주소로 직접 요청한다.
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "",
   headers: { "Content-Type": "application/json" },
