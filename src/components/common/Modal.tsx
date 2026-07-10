@@ -7,7 +7,6 @@ interface ModalProps {
   children: ReactNode;
 }
 
-/** 하단에서 올라오는 바텀시트 모달 */
 function Modal({ open, title, onClose, children }: ModalProps) {
   if (!open) return null;
   return (

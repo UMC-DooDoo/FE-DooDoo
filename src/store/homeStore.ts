@@ -237,9 +237,14 @@ export const useHomeStore = create<HomeStore>((set, get) => ({
   },
 
   addCategory: async (name, color) => {
-    const created = await createCategory(name, color);
-    set((state) => ({ categories: [...state.categories, created] }));
-    return created;
+    try {
+      const created = await createCategory(name, color);
+      set((state) => ({ categories: [...state.categories, created], error: null }));
+      return created;
+    } catch (e) {
+      set({ error: messageOf(e) });
+      throw e;
+    }
   },
 
   deleteCategory: async (id) => {

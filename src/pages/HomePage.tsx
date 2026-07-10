@@ -93,10 +93,11 @@ function HomePage() {
     setShowAddTask(false);
   }
 
-  function handleAddCategory(cat: Category) {
-    // 서버에 생성하고 방금 만든 분야를 모달에서 자동 선택
-    addCategory(cat.name, cat.color);
-    setNewCategoryHint(cat.name);
+  async function handleAddCategory(cat: Category) {
+    // 서버에 생성될 때까지 기다린 다음에 모달에서 자동 선택해야,
+    // categories 목록에 실제로 반영된 이름으로 칩이 뜨고 제출도 된다.
+    const created = await addCategory(cat.name, cat.color);
+    setNewCategoryHint(created.name);
     setShowAddCategory(false);
   }
 
