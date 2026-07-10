@@ -148,10 +148,28 @@ function HomePage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* 상단: 로고 + 월/주 토글 */}
-      <div className="flex h-14 items-center justify-between px-4">
-        <span className="text-lg font-bold text-blue-500">DooDoo</span>
-        <Toggle options={["월", "주"]} value={view} onChange={setView} />
+      {/* 상단: 타이틀 + 월/주 토글 */}
+      <div className="flex items-end justify-between px-4 pt-5 pb-2">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-neutral-400">
+            MY TASKS
+          </p>
+          <h1 className="text-xl font-bold">할 일</h1>
+        </div>
+        <Toggle
+          options={["월", "주"]}
+          value={view}
+          onChange={setView}
+          icons={[
+            <svg key="m" width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M2 6.5H14M5.5 1.5V4M10.5 1.5V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>,
+            <svg key="w" width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <path d="M3 4.5H13M3 8H13M3 11.5H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>,
+          ]}
+        />
       </div>
 
       {/* 월 이동 내비게이션 */}
@@ -233,9 +251,13 @@ function HomePage() {
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
                     isSelected
                       ? "bg-blue-500 font-semibold text-white"
-                      : inMonth
-                        ? "text-neutral-900"
-                        : "text-neutral-200"
+                      : !inMonth
+                        ? "text-neutral-200"
+                        : date.getDay() === 0
+                          ? "text-danger"
+                          : date.getDay() === 6
+                            ? "text-blue-500"
+                            : "text-neutral-900"
                   }`}
                 >
                   {date.getDate()}
