@@ -61,3 +61,20 @@ export const ACCENT_TEXT: Record<AccentColor, string> = {
   red: 'text-red-500',
   neutral: 'text-neutral-500',
 }
+
+// ---- 서버 색상 enum 변환 ----
+// 백엔드는 색을 대문자 enum("BLUE")으로 주고받는다고 가정한다.
+// (실제 enum 값이 다르면 이 두 함수만 고치면 됨)
+
+/** 프론트 색 키 -> 서버 enum. 예: 'blue' -> 'BLUE' */
+export function toServerColor(accent: AccentColor): string {
+  return accent.toUpperCase()
+}
+
+/** 서버 enum -> 프론트 색 키. 모르는 값은 neutral 로 폴백. 예: 'BLUE' -> 'blue' */
+export function toAccentColor(server: string): AccentColor {
+  const lower = server?.toLowerCase()
+  return (ACCENT_COLORS as string[]).includes(lower)
+    ? (lower as AccentColor)
+    : 'neutral'
+}
