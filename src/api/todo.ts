@@ -3,9 +3,10 @@
 import { axiosInstance, unwrap } from "./axiosInstance";
 import type { Priority } from "../constants/priority";
 
-// 현재 로그인 유저 id (login/getMe 시 저장)
+// 현재 로그인 유저 id (login/getMe 시 저장).
+// 인증(로그인)이 아직 서버에 없어 임시로 1을 기본값으로 둠 — 배포되면 제거.
 function userId() {
-  return localStorage.getItem("userId") ?? "";
+  return localStorage.getItem("userId") ?? "1";
 }
 
 // ---- 날짜별 목록 조회 ----
