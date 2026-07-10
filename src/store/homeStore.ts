@@ -14,7 +14,6 @@ import {
   deleteCategory as apiDeleteCategory,
 } from "../api/category";
 import type { CategoryItem } from "../api/category";
-import { getGroupedByCategory, getGroupedByPriority } from "../api/grouping";
 import type { Group } from "../api/grouping";
 import { ApiError } from "../types/api";
 import { ACCENT_BG } from "../constants/category";
@@ -155,31 +154,17 @@ export const useHomeStore = create<HomeStore>((set, get) => ({
   },
 
   reloadGroups: async () => {
+    // 그룹핑 API(/categories/todos/grouped-by-*)가 아직 미배포라
+    // 배포된 /todos 로 조회하고 화면에서 직접 그룹핑한다.
+    // (그룹핑 API 배포되면 getGroupedBy* 로 교체)
     const { selected, grouping } = get();
     const date = toKey(selected);
     try {
-      const groups =
-        grouping === "우선순위"
-          ? await getGroupedByPriority(date)
-          : await getGroupedByCategory(date);
-      const total = groups.reduce((s, g) => s + g.total, 0);
-      const completed = groups.reduce((s, g) => s + g.completed, 0);
-      set({ groups, total, completed, error: null });
-    } catch {
-      // 그룹핑 API 미배포/500 → /todos 로 폴백해 화면에서 직접 그룹핑
-      try {
-        const { todos, totalCount, completedCount } =
-          await getTodosByDate(date);
-        const groups = fallbackGroups(todos, get().categories, grouping);
-        set({
-          groups,
-          total: totalCount,
-          completed: completedCount,
-          error: null,
-        });
-      } catch (e) {
-        set({ groups: [], total: 0, completed: 0, error: messageOf(e) });
-      }
+      const { todos, totalCount, completedCount } = await getTodosByDate(date);
+      const groups = fallbackGroups(todos, get().categories, grouping);
+      set({ groups, total: totalCount, completed: completedCount, error: null });
+    } catch (e) {
+      set({ groups: [], total: 0, completed: 0, error: messageOf(e) });
     }
   },
 
