@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Toggle from "../components/common/Toggle";
 import ListItem from "../components/common/ListItem";
 import Header from "../components/common/Header";
 import PageTitle from "../components/common/PageTitle";
 import DateCell from "../components/common/DateCell";
+import Modal from "../components/common/Modal";
 import AddTaskModal from "../components/home/AddTaskModal";
 import AddCategoryModal from "../components/home/AddCategoryModal";
 import { useHomeStore } from "../store/homeStore";
 import { confirmModal } from "../store/confirmModalStore";
+import { logout } from "../api/auth";
 import { toKey, addDays } from "../utils/date";
 import { ACCENT_BG } from "../constants/category";
 import { PRIORITY_COLOR } from "../constants/priority";
@@ -31,6 +34,7 @@ function getWeekOf(date: Date) {
 }
 
 function HomePage() {
+  const navigate = useNavigate();
   const {
     categories,
     calendarDays,
@@ -57,6 +61,18 @@ function HomePage() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryHint, setNewCategoryHint] = useState<string | null>(null);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+
+  async function handleLogout() {
+    setShowMoreMenu(false);
+    try {
+      await logout();
+    } finally {
+      // logout() 은 서버 요청이 실패해도 로컬 토큰은 항상 지우므로,
+      // 어느 쪽이든 로그인 화면으로 보낸다.
+      navigate("/login");
+    }
+  }
 
   // 최초 진입 시 데이터 로드
   useEffect(() => {
@@ -234,17 +250,41 @@ function HomePage() {
           </div>
         )}
 
+        <div className="sticky bottom-20 z-10 mt-auto mb-4 flex flex-col items-end gap-3 self-end">
+          <button
+            type="button"
+            aria-label="더보기"
+            onClick={() => setShowMoreMenu(true)}
+            className="flex h-12 w-12 items-center justify-center rounded-lg border border-neutral-100 bg-white text-neutral-600 shadow-lg active:bg-neutral-50"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="4" cy="10" r="1.6" fill="currentColor" />
+              <circle cx="10" cy="10" r="1.6" fill="currentColor" />
+              <circle cx="16" cy="10" r="1.6" fill="currentColor" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="할 일 추가"
+            onClick={() => setShowAddTask(true)}
+            className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500 text-white shadow-lg active:bg-blue-600"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <Modal open={showMoreMenu} title="메뉴" onClose={() => setShowMoreMenu(false)}>
         <button
           type="button"
-          aria-label="할 일 추가"
-          onClick={() => setShowAddTask(true)}
-          className="sticky bottom-20 z-10 mt-auto mb-4 flex h-12 w-12 items-center justify-center self-end rounded-lg bg-blue-500 text-white shadow-lg active:bg-blue-600"
+          onClick={handleLogout}
+          className="flex h-12 w-full items-center rounded-xl px-3 text-sm font-semibold text-neutral-700 active:bg-neutral-50"
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+          로그아웃
         </button>
-      </section>
+      </Modal>
 
       <AddTaskModal
         open={showAddTask}
