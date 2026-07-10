@@ -1,39 +1,54 @@
-/* ===== Reset ===== */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@import "tailwindcss";
+
+/* Tailwind 의 기본 sans 스택을 Pretendard 로 교체.
+ * 이걸 해야 html 기본 폰트와 font-sans 유틸리티가 모두 Pretendard 를 쓴다. */
+@theme {
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR",
+    sans-serif;
 }
 
-button {
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
+/* ===== Reset =====
+ * @layer base 안에 둬야 한다. 레이어 밖 선언은 specificity와 무관하게
+ * Tailwind 유틸리티(@layer utilities)를 항상 이겨버린다. */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  button {
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
 
-ul,
-ol {
-  list-style: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-img,
-svg {
-  display: block;
-  max-width: 100%;
-}
+  ul,
+  ol {
+    list-style: none;
+  }
 
-input,
-textarea {
-  font: inherit;
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  input,
+  textarea {
+    font: inherit;
+  }
 }
 
 /* ===== Design Tokens (피그마 UMC 10th 해커톤 - Colors) ===== */
@@ -124,22 +139,15 @@ textarea {
 html {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  font-family:
-    "Pretendard Variable",
-    Pretendard,
-    -apple-system,
-    BlinkMacSystemFont,
-    system-ui,
-    Roboto,
-    "Segoe UI",
-    "Apple SD Gothic Neo",
-    "Noto Sans KR",
-    sans-serif;
+  /* font-family 는 @theme 의 --font-sans 가 html 에 걸어준다 */
   font-size: var(--font-md);
   line-height: 1.5;
   color: var(--color-text);
-  background: var(--color-bg);
+  /* 앱 프레임 바깥 여백. 프레임 내부는 AppLayout이 흰색으로 덮는다 */
+  background: var(--neutral-100);
+  overscroll-behavior-y: none;
 }
