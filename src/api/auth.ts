@@ -12,11 +12,6 @@ interface SignupResult {
   memberId: number;
 }
 
-interface ReissueResult {
-  accessToken: string;
-  refreshToken: string;
-}
-
 /** 로그인 — POST /auth/login. 성공 시 토큰·memberId 저장 */
 export async function login(signupId: string, password: string) {
   const res = await unwrap<LoginResult>(
@@ -51,17 +46,8 @@ export async function logout() {
   }
 }
 
-/** 토큰 재발급 — POST /auth/reissue */
-export async function reissue() {
-  const accessToken = localStorage.getItem("accessToken");
-  const refreshToken = localStorage.getItem("refreshToken");
-  const res = await unwrap<ReissueResult>(
-    axiosInstance.post("/auth/reissue", { accessToken, refreshToken }),
-  );
-  localStorage.setItem("accessToken", res.accessToken);
-  localStorage.setItem("refreshToken", res.refreshToken);
-  return res;
-}
+// 토큰 재발급(POST /auth/reissue)은 axiosInstance 의 401 응답 인터셉터가
+// 자동으로 처리한다 — 여기서 따로 호출할 필요 없다.
 
 /** 로그인 여부(토큰 존재) */
 export function isLoggedIn() {
