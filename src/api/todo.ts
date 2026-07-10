@@ -3,11 +3,7 @@
 import { axiosInstance, unwrap } from "./axiosInstance";
 import type { Priority } from "../constants/priority";
 
-// 현재 로그인 유저 id (login/getMe 시 저장).
-// 인증(로그인)이 아직 서버에 없어 임시로 1을 기본값으로 둠 — 배포되면 제거.
-function userId() {
-  return localStorage.getItem("userId") ?? "1";
-}
+// 사용자는 Authorization(JWT) 헤더로 판별한다. userId 쿼리 없음.
 
 // ---- 날짜별 목록 조회 ----
 interface TodoListItemDto {
@@ -40,10 +36,10 @@ export interface TodoList {
   todos: TodoListItem[];
 }
 
-/** 날짜별 할 일 목록 — GET /todos?userId=&date=YYYY-MM-DD */
+/** 날짜별 할 일 목록 — GET /todos?date=YYYY-MM-DD (인증 헤더로 사용자 판별) */
 export async function getTodosByDate(date: string): Promise<TodoList> {
   const res = await unwrap<TodoListDto>(
-    axiosInstance.get("/todos", { params: { userId: userId(), date } }),
+    axiosInstance.get("/todos", { params: { date } }),
   );
   return {
     date: res.date,
@@ -66,9 +62,7 @@ export async function createTodo(body: {
   taskDate: string; // YYYY-MM-DD
   priority: Priority;
 }) {
-  return unwrap<unknown>(
-    axiosInstance.post("/todos", { userId: Number(userId()), ...body }),
-  );
+  return unwrap<unknown>(axiosInstance.post("/todos", body));
 }
 
 /** 할 일 수정 — PATCH /todos/{todoId} */
@@ -108,10 +102,10 @@ interface CalendarDto {
   days: CalendarDay[];
 }
 
-/** 월별 캘린더 요약 — GET /calendar?userId=&month=YYYY-MM */
+/** 월별 캘린더 요약 — GET /calendar?month=YYYY-MM (인증 헤더로 사용자 판별) */
 export async function getMonthlyCalendar(month: string): Promise<CalendarDay[]> {
   const res = await unwrap<CalendarDto>(
-    axiosInstance.get("/calendar", { params: { userId: userId(), month } }),
+    axiosInstance.get("/calendar", { params: { month } }),
   );
   return res.days;
 }
