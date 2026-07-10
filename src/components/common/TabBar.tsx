@@ -12,7 +12,7 @@ function TabBar({ tabs, active, onChange }: TabBarProps) {
           key={tab}
           type="button"
           onClick={() => onChange(tab)}
-          className={`flex-1 border-t-2 py-3 text-base transition-colors ${
+          className={`text-md flex-1 border-t-2 py-3 transition-colors ${
             active === tab
               ? 'border-neutral-900 font-semibold text-neutral-900'
               : 'border-transparent text-neutral-300'

@@ -7,7 +7,7 @@ function Button({ children, className = '', disabled, ...rest }: ButtonProps) {
     <button
       type="button"
       disabled={disabled}
-      className={`h-12 w-full rounded-xl text-base font-semibold transition-colors ${
+      className={`text-md h-12 w-full rounded-xl font-semibold transition-colors ${
         disabled
           ? 'bg-neutral-100 text-neutral-300'
           : 'bg-blue-500 text-white active:bg-blue-600'

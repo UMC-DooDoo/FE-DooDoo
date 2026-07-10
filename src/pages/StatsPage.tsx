@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import MonthSelector from '../components/stats/MonthSelector'
+import Header from '../components/common/Header'
 import SummaryBanner from '../components/stats/SummaryBanner'
 import CompletionCard from '../components/stats/CompletionCard'
 import DailyChartCard from '../components/stats/DailyChartCard'
@@ -75,11 +75,11 @@ function StatsPage() {
         <h1 className="text-xl font-bold text-neutral-900">월별 통계</h1>
       </header>
 
-      <MonthSelector
-        year={year}
-        month={month}
+      <Header
+        title={`${year}년 ${month}월`}
         onPrev={() => moveMonth(-1)}
         onNext={() => moveMonth(1)}
+        className="rounded-lg bg-neutral-100 px-2 py-3"
       />
 
       <SummaryBanner rate={rate} />
