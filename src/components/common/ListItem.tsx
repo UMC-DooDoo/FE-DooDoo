@@ -18,7 +18,7 @@ function ListItem({
 }: ListItemProps) {
   return (
     <div
-      className={`flex w-full items-center gap-3 rounded-xl border border-neutral-100 bg-white px-4 py-3 ${
+      className={`flex w-full items-center gap-3 rounded-full border border-neutral-100 bg-white px-4 py-2.5 ${
         checked ? 'opacity-40' : ''
       }`}
     >

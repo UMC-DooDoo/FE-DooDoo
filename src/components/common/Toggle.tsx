@@ -1,28 +1,33 @@
+import type { ReactNode } from "react";
+
 interface ToggleProps {
-  options: [string, string]
-  value: string
-  onChange: (value: string) => void
+  options: [string, string];
+  value: string;
+  onChange: (value: string) => void;
+  /** 옵션 왼쪽에 붙는 아이콘 (선택) */
+  icons?: [ReactNode, ReactNode];
 }
 
-function Toggle({ options, value, onChange }: ToggleProps) {
+function Toggle({ options, value, onChange, icons }: ToggleProps) {
   return (
-    <div className="inline-flex rounded-full bg-neutral-100 p-1">
-      {options.map((option) => (
+    <div className="inline-flex rounded-full border border-border bg-neutral-50 p-0.5">
+      {options.map((option, i) => (
         <button
           key={option}
           type="button"
           onClick={() => onChange(option)}
-          className={`min-w-12 rounded-full px-3 py-1.5 text-sm transition-colors ${
+          className={`flex items-center justify-center gap-1 rounded-full px-3 py-1 text-xs transition-colors ${
             value === option
-              ? 'bg-blue-500 font-semibold text-white'
-              : 'text-neutral-400'
+              ? "border border-border bg-white font-semibold text-text shadow-sm"
+              : "border border-transparent text-neutral-300"
           }`}
         >
+          {icons?.[i]}
           {option}
         </button>
       ))}
     </div>
-  )
+  );
 }
 
-export default Toggle
+export default Toggle;
