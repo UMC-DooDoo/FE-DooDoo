@@ -1,7 +1,11 @@
 import { useState } from "react";
 import Toggle from "../components/common/Toggle";
 import ListItem from "../components/common/ListItem";
+import AddTaskModal from "../components/home/AddTaskModal";
+import AddCategoryModal from "../components/home/AddCategoryModal";
 import type { ChipColor } from "../components/common/Chip";
+import type { Category, Priority, Todo } from "../types/todo";
+import { PRIORITY_META } from "../types/todo";
 
 // ---------- 날짜 유틸 ----------
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -35,32 +39,13 @@ function getWeekOf(date: Date) {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 }
 
-// ---------- 할 일 데이터 (API 연동 전 더미) ----------
-type Priority = 1 | 2 | 3 | 4;
-
-interface Todo {
-  id: number;
-  title: string;
-  date: string; // YYYY-MM-DD
-  category: string;
-  priority: Priority;
-  done: boolean;
-}
-
-// 우선순위 동그라미 색: 1순위 빨강, 2순위 주황, 3순위 파랑, 4순위 이상 회색
-const PRIORITY_META: Record<Priority, { label: string; dot: string }> = {
-  1: { label: "1순위", dot: "bg-danger" },
-  2: { label: "2순위", dot: "bg-apricot-300" },
-  3: { label: "3순위", dot: "bg-blue-500" },
-  4: { label: "4순위", dot: "bg-neutral-300" },
-};
-
-const CATEGORY_CHIP: Record<string, ChipColor> = {
-  공부: "blue",
-  일: "yellow",
-  운동: "green",
-  집안일: "purple",
-};
+// ---------- 초기 데이터 (API 연동 전 더미) ----------
+const INITIAL_CATEGORIES: Category[] = [
+  { name: "공부", color: "blue" },
+  { name: "운동", color: "green" },
+  { name: "일", color: "yellow" },
+  { name: "집안일", color: "purple" },
+];
 
 const todayKey = (offset: number) => toKey(addDays(new Date(), offset));
 
@@ -79,6 +64,7 @@ const INITIAL_TODOS: Todo[] = [
 function HomePage() {
   const today = new Date();
   const [todos, setTodos] = useState<Todo[]>(INITIAL_TODOS);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [view, setView] = useState("월");
   const [grouping, setGrouping] = useState("우선순위");
   const [selected, setSelected] = useState(today);
@@ -86,6 +72,14 @@ function HomePage() {
     year: today.getFullYear(),
     month: today.getMonth(),
   });
+
+  // 모달
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryHint, setNewCategoryHint] = useState<string | null>(null);
+
+  const categoryColor = (name: string): ChipColor =>
+    categories.find((c) => c.name === name)?.color ?? "blue";
 
   const byDate = new Map<string, Todo[]>();
   for (const todo of todos) {
@@ -102,7 +96,6 @@ function HomePage() {
   function moveMonth(delta: number) {
     const next = new Date(viewYM.year, viewYM.month + delta, 1);
     setViewYM({ year: next.getFullYear(), month: next.getMonth() });
-    // 이동한 달이 이번 달이면 오늘, 아니면 1일 선택
     const isThisMonth =
       next.getFullYear() === today.getFullYear() &&
       next.getMonth() === today.getMonth();
@@ -110,14 +103,34 @@ function HomePage() {
   }
 
   function moveWeek(delta: number) {
-    const next = addDays(selected, delta * 7);
-    selectDay(next);
+    selectDay(addDays(selected, delta * 7));
   }
 
   function toggleTodo(id: number) {
     setTodos((prev) =>
       prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
     );
+  }
+
+  function addTodo(data: { title: string; category: string; priority: Priority }) {
+    setTodos((prev) => [
+      ...prev,
+      {
+        id: prev.reduce((max, t) => Math.max(max, t.id), 0) + 1,
+        title: data.title,
+        date: toKey(selected),
+        category: data.category,
+        priority: data.priority,
+        done: false,
+      },
+    ]);
+    setShowAddTask(false);
+  }
+
+  function addCategory(cat: Category) {
+    setCategories((prev) => [...prev, cat]);
+    setNewCategoryHint(cat.name);
+    setShowAddCategory(false);
   }
 
   const days =
@@ -181,13 +194,7 @@ function HomePage() {
           className="p-2 text-neutral-400"
         >
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M12.5 15L7.5 10L12.5 5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
         <span className="text-base font-semibold">
@@ -200,13 +207,7 @@ function HomePage() {
           className="p-2 text-neutral-400"
         >
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M7.5 5L12.5 10L7.5 15"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>
@@ -238,7 +239,7 @@ function HomePage() {
             const allDone = dayTodos.length > 0 && dayTodos.every((t) => t.done);
             const dots = [...new Set(dayTodos.map((t) => t.priority))]
               .sort()
-              .slice(0, 3); // 동그라미는 최대 3개
+              .slice(0, 3);
 
             return (
               <button
@@ -268,7 +269,7 @@ function HomePage() {
                       <span
                         key={p}
                         className={`h-1.5 w-1.5 rounded-full ${PRIORITY_META[p].dot} ${
-                          allDone ? "opacity-30" : "" // 모두 완료된 날은 연하게
+                          allDone ? "opacity-30" : ""
                         }`}
                       />
                     ))}
@@ -326,7 +327,7 @@ function HomePage() {
                     label={todo.title}
                     checked={todo.done}
                     chipLabel={todo.category}
-                    chipColor={CATEGORY_CHIP[todo.category] ?? "blue"}
+                    chipColor={categoryColor(todo.category)}
                     onToggle={() => toggleTodo(todo.id)}
                   />
                 ))}
@@ -335,22 +336,34 @@ function HomePage() {
           </div>
         )}
 
-        {/* 할 일 추가 버튼 — TODO: 등록 화면/모달 연결 */}
+        {/* 할 일 추가 FAB */}
         <button
           type="button"
           aria-label="할 일 추가"
+          onClick={() => setShowAddTask(true)}
           className="sticky bottom-20 z-10 mt-auto mb-4 flex h-12 w-12 items-center justify-center self-end rounded-2xl bg-blue-500 text-white shadow-lg active:bg-blue-600"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M10 4V16M4 10H16"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
+            <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
       </section>
+
+      {/* 모달 */}
+      <AddTaskModal
+        open={showAddTask}
+        categories={categories}
+        selectHint={newCategoryHint}
+        onClose={() => setShowAddTask(false)}
+        onRequestAddCategory={() => setShowAddCategory(true)}
+        onSubmit={addTodo}
+      />
+      <AddCategoryModal
+        open={showAddCategory}
+        existingNames={categories.map((c) => c.name)}
+        onClose={() => setShowAddCategory(false)}
+        onSubmit={addCategory}
+      />
     </div>
   );
 }
