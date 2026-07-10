@@ -1,17 +1,98 @@
 @import "tailwindcss";
 
-/* Tailwind 의 기본 sans 스택을 Pretendard 로 교체.
- * 이걸 해야 html 기본 폰트와 font-sans 유틸리티가 모두 Pretendard 를 쓴다. */
 @theme {
   --font-sans:
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     system-ui, Roboto, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR",
     sans-serif;
+
+  --color-blue-*: initial;
+  --color-green-*: initial;
+  --color-pink-*: initial;
+  --color-yellow-*: initial;
+  --color-purple-*: initial;
+  --color-cyan-*: initial;
+  --color-neutral-*: initial;
+
+  /* Blue */
+  --color-blue-600: #0a2fa9;
+  --color-blue-500: #1240d9;
+  --color-blue-400: #305cee;
+  --color-blue-300: #698cff;
+  --color-blue-200: #a2b7fb;
+  --color-blue-100: #cfd9fc;
+  --color-blue-50: #e2e8fd;
+
+  /* Green */
+  --color-green-500: #29c878;
+  --color-green-300: #57f3a5;
+  --color-green-100: #e3fdf0;
+
+  /* Apricot */
+  --color-apricot-500: #dc710e;
+  --color-apricot-300: #ff9e44;
+  --color-apricot-100: #ffeedf;
+
+  /* Pink */
+  --color-pink-500: #dc0e7c;
+  --color-pink-300: #ff6dbb;
+  --color-pink-100: #ffeff7;
+
+  /* Yellow */
+  --color-yellow-500: #969b06;
+  --color-yellow-300: #e6ec3f;
+  --color-yellow-100: #fdfee4;
+
+  /* Purple */
+  --color-purple-500: #7c2be5;
+  --color-purple-300: #b988fa;
+  --color-purple-100: #f6effe;
+
+  /* Cyan */
+  --color-cyan-500: #2bc0e5;
+  --color-cyan-300: #88e3fa;
+  --color-cyan-100: #effbfe;
+
+  /* Neutral */
+  --color-neutral-900: #1c1630;
+  --color-neutral-800: #1c1630e8;
+  --color-neutral-700: #1c1630cc;
+  --color-neutral-600: #1c1630b3;
+  --color-neutral-500: #1c163099;
+  --color-neutral-400: #1c163075;
+  --color-neutral-300: #1c16304d;
+  --color-neutral-200: #1c16302b;
+  --color-neutral-100: #1c16300d;
+  --color-neutral-50: #1c163005;
+
+  /* System */
+  --color-danger: #ff3241;
+  --color-success: #1fb015;
+
+  /* Text Size */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+
+  /* Spacing */
+  --spacing: 4px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
-/* ===== Reset =====
- * @layer base 안에 둬야 한다. 레이어 밖 선언은 specificity와 무관하게
- * Tailwind 유틸리티(@layer utilities)를 항상 이겨버린다. */
+@theme inline {
+  --color-primary: var(--color-blue-400);
+  --color-bg: #ffffff;
+  --color-text: var(--color-neutral-900);
+  --color-text-sub: var(--color-neutral-500);
+  --color-border: var(--color-neutral-100);
+}
+
 @layer base {
   *,
   *::before,
@@ -49,105 +130,18 @@
   textarea {
     font: inherit;
   }
-}
 
-/* ===== Design Tokens (피그마 UMC 10th 해커톤 - Colors) ===== */
-:root {
-  /* Brand - Blue */
-  --blue-600: #0a2fa9;
-  --blue-500: #1240d9;
-  --blue-400: #305cee;
-  --blue-300: #698cff;
-  --blue-200: #a2b7fb;
-  --blue-100: #cfd9fc;
-  --blue-50: #e2e8fd;
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-  /* Brand - Green */
-  --green-500: #29c878;
-  --green-300: #57f3a5;
-  --green-100: #e3fdf0;
-
-  /* Brand - Apricot */
-  --apricot-500: #dc710e;
-  --apricot-300: #ff9e44;
-  --apricot-100: #ffeedf;
-
-  /* Brand - Pink */
-  --pink-500: #dc0e7c;
-  --pink-300: #ff6dbb;
-  --pink-100: #ffeff7;
-
-  /* Brand - Yellow */
-  --yellow-500: #969b06;
-  --yellow-300: #e6ec3f;
-  --yellow-100: #fdfee4;
-
-  /* Brand - Purple */
-  --purple-500: #7c2be5;
-  --purple-300: #b988fa;
-  --purple-100: #f6effe;
-
-  /* Brand - Cyan */
-  --cyan-500: #2bc0e5;
-  --cyan-300: #88e3fa;
-  --cyan-100: #effbfe;
-
-  /* Neutral (진한 것부터) */
-  --neutral-900: #1c1630;
-  --neutral-800: #1c1630e8;
-  --neutral-700: #1c1630cc;
-  --neutral-600: #1c1630b3;
-  --neutral-500: #1c163099;
-  --neutral-400: #1c163075;
-  --neutral-300: #1c16304d;
-  --neutral-200: #1c16302b;
-  --neutral-100: #1c16300d;
-  --neutral-50: #1c163005;
-
-  /* System */
-  --danger: #ff3241;
-  --success: #1fb015;
-
-  /* Semantic — 컴포넌트에선 가급적 이걸 쓰기 */
-  --color-primary: var(--blue-400);
-  --color-bg: #ffffff;
-  --color-text: var(--neutral-900);
-  --color-text-sub: var(--neutral-500);
-  --color-border: var(--neutral-100);
-
-  /* 폰트 크기 */
-  --font-xl: 24px;
-  --font-lg: 20px;
-  --font-md: 16px;
-  --font-sm: 14px;
-  --font-xs: 12px;
-
-  /* 간격 */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-
-  /* 라운드 */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-}
-
-/* ===== Base ===== */
-html {
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  /* font-family 는 @theme 의 --font-sans 가 html 에 걸어준다 */
-  font-size: var(--font-md);
-  line-height: 1.5;
-  color: var(--color-text);
-  /* 앱 프레임 바깥 여백. 프레임 내부는 AppLayout이 흰색으로 덮는다 */
-  background: var(--neutral-100);
-  overscroll-behavior-y: none;
+  body {
+    font-size: var(--text-md);
+    line-height: 1.5;
+    color: var(--color-neutral-900);
+    background: var(--color-neutral-100);
+    overscroll-behavior-y: none;
+  }
 }

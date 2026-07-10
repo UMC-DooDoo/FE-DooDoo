@@ -5,9 +5,9 @@ const TABS = [
   { to: "/stats", label: "통계" },
 ];
 
-function BottomNav() {
+function NavigationBar() {
   return (
-    <nav className="sticky bottom-0 border-t border-[var(--color-border)] bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav className="border-border bg-bg sticky bottom-0 border-t pb-[env(safe-area-inset-bottom)]">
       <ul className="flex">
         {TABS.map(({ to, label }) => (
           <li key={to} className="flex-1">
@@ -16,9 +16,7 @@ function BottomNav() {
               end
               className={({ isActive }) =>
                 `flex h-14 items-center justify-center text-sm ${
-                  isActive
-                    ? "font-semibold text-[var(--color-text)]"
-                    : "text-[var(--color-text-sub)]"
+                  isActive ? "text-text font-semibold" : "text-text-sub"
                 }`
               }
             >
@@ -31,4 +29,4 @@ function BottomNav() {
   );
 }
 
-export default BottomNav;
+export default NavigationBar;
