@@ -2,22 +2,73 @@ import { create } from "zustand";
 import { addDays, toKey } from "../utils/date";
 import {
   getMonthlyCalendar,
+  getTodosByDate,
   createTodo,
   toggleComplete,
   deleteTodo as apiDeleteTodo,
 } from "../api/todo";
-import type { CalendarDay } from "../api/todo";
+import type { CalendarDay, TodoListItem } from "../api/todo";
 import {
   getCategories,
   createCategory,
   deleteCategory as apiDeleteCategory,
 } from "../api/category";
 import type { CategoryItem } from "../api/category";
-import { getGroupedByCategory, getGroupedByPriority } from "../api/grouping";
 import type { Group } from "../api/grouping";
 import { ApiError } from "../types/api";
+import { ACCENT_BG } from "../constants/category";
 import type { AccentColor } from "../constants/category";
+import { PRIORITIES, PRIORITY_COLOR } from "../constants/priority";
 import type { Priority } from "../constants/priority";
+
+// 그룹핑 API(500 등) 실패 시 /todos 응답으로 화면에서 직접 그룹핑하는 폴백.
+function fallbackGroups(
+  todos: TodoListItem[],
+  categories: CategoryItem[],
+  grouping: string,
+): Group[] {
+  const catById = new Map(categories.map((c) => [c.id, c]));
+  const toItem = (t: TodoListItem) => {
+    const cat = catById.get(t.categoryId);
+    return {
+      id: t.id,
+      title: t.title,
+      done: t.done,
+      priority: t.priority,
+      category: cat?.name ?? "",
+      color: (cat?.color ?? "neutral") as AccentColor,
+    };
+  };
+
+  if (grouping === "우선순위") {
+    return PRIORITIES.map((p) => {
+      const items = todos.filter((t) => t.priority === p).map(toItem);
+      return {
+        key: `pri-${p}`,
+        label: `${p}순위`,
+        dot: ACCENT_BG[PRIORITY_COLOR[p]],
+        completed: items.filter((i) => i.done).length,
+        total: items.length,
+        items,
+      };
+    }).filter((g) => g.total > 0);
+  }
+
+  // 분야별
+  const ids = [...new Set(todos.map((t) => t.categoryId))];
+  return ids.map((id) => {
+    const cat = catById.get(id);
+    const items = todos.filter((t) => t.categoryId === id).map(toItem);
+    return {
+      key: `cat-${id}`,
+      label: cat?.name ?? `분야 ${id}`,
+      dot: ACCENT_BG[cat?.color ?? "neutral"],
+      completed: items.filter((i) => i.done).length,
+      total: items.length,
+      items,
+    };
+  });
+}
 
 const today = new Date();
 
@@ -78,15 +129,16 @@ export const useHomeStore = create<HomeStore>((set, get) => ({
 
   init: async () => {
     set({ loading: true, error: null });
+    // 분야 목록 실패(미배포/500)해도 캘린더·할일은 뜨게 개별 처리
     try {
       const categories = await getCategories();
       set({ categories });
-      await Promise.all([get().reloadCalendar(), get().reloadGroups()]);
-    } catch (e) {
-      set({ error: messageOf(e) });
-    } finally {
-      set({ loading: false });
+    } catch {
+      // 분야 API가 아직 없으면 빈 목록으로 진행
+      set({ categories: [] });
     }
+    await Promise.all([get().reloadCalendar(), get().reloadGroups()]);
+    set({ loading: false });
   },
 
   reloadCalendar: async () => {
@@ -102,18 +154,17 @@ export const useHomeStore = create<HomeStore>((set, get) => ({
   },
 
   reloadGroups: async () => {
+    // 그룹핑 API(/categories/todos/grouped-by-*)가 아직 미배포라
+    // 배포된 /todos 로 조회하고 화면에서 직접 그룹핑한다.
+    // (그룹핑 API 배포되면 getGroupedBy* 로 교체)
     const { selected, grouping } = get();
     const date = toKey(selected);
     try {
-      const groups =
-        grouping === "우선순위"
-          ? await getGroupedByPriority(date)
-          : await getGroupedByCategory(date);
-      const total = groups.reduce((s, g) => s + g.total, 0);
-      const completed = groups.reduce((s, g) => s + g.completed, 0);
-      set({ groups, total, completed });
+      const { todos, totalCount, completedCount } = await getTodosByDate(date);
+      const groups = fallbackGroups(todos, get().categories, grouping);
+      set({ groups, total: totalCount, completed: completedCount, error: null });
     } catch (e) {
-      set({ error: messageOf(e) });
+      set({ groups: [], total: 0, completed: 0, error: messageOf(e) });
     }
   },
 

@@ -3,9 +3,10 @@ import type { AxiosResponse } from "axios";
 import type { ApiResponse } from "../types/api";
 import { ApiError } from "../types/api";
 
-// 서버 주소는 .env 의 VITE_API_BASE_URL 로 주입. 없으면 개발용 프록시(/api) 사용.
+// baseURL 을 비워 두면 같은 출처(localhost)로 요청 → Vite dev 프록시가
+// 백엔드로 대신 전달(CORS 우회). 배포 시에는 .env 의 VITE_API_BASE_URL 로 절대주소 주입.
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "",
   headers: { "Content-Type": "application/json" },
   timeout: 10000,
 });
