@@ -46,18 +46,14 @@ export async function getCategories(): Promise<CategoryItem[]> {
   return res.categories.map(toCategory);
 }
 
-/**
- * 분야 생성 — POST /categories.
- * ⚠️ memberId 쿼리를 붙여도 다양한 color/필드명 조합에서 계속 CATEGORY400 이 나서,
- * 정확한 요청 스펙을 백엔드(minwldnjs)에 확인해야 한다. memberId 는 우선 붙여 둔다.
- */
+/** 분야 생성 — POST /categories. memberId 는 쿼리가 아니라 body 필드(숫자)로 보내야 한다. */
 export async function createCategory(name: string, color: AccentColor) {
   const dto = await unwrap<CategoryDto>(
-    axiosInstance.post(
-      "/categories",
-      { categoryName: name, color: toServerColor(color) },
-      { params: { memberId: getMemberId() } },
-    ),
+    axiosInstance.post("/categories", {
+      memberId: Number(getMemberId()),
+      categoryName: name,
+      color: toServerColor(color),
+    }),
   );
   return toCategory(dto);
 }
