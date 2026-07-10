@@ -55,3 +55,14 @@ export const ACCENT_TEXT: Record<AccentColor, string> = {
   red: "text-red-500",
   neutral: "text-neutral-500",
 };
+
+export function toServerColor(accent: AccentColor): string {
+  return accent.toUpperCase();
+}
+
+export function toAccentColor(server: string): AccentColor {
+  const lower = server?.toLowerCase();
+  return (ACCENT_COLORS as string[]).includes(lower)
+    ? (lower as AccentColor)
+    : "neutral";
+}
