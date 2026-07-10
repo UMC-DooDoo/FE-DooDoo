@@ -13,6 +13,7 @@
   --color-purple-*: initial;
   --color-cyan-*: initial;
   --color-neutral-*: initial;
+  --color-red-*: initial;
 
   /* Blue */
   --color-blue-600: #0a2fa9;
@@ -52,6 +53,12 @@
   --color-cyan-500: #2bc0e5;
   --color-cyan-300: #88e3fa;
   --color-cyan-100: #effbfe;
+
+  /* Red — 피그마 팔레트에 없어서 --color-danger 를 500 으로 두고 파생시킨 값.
+   * '일정' 카테고리와 1순위에 쓰인다. 디자이너 확인 필요. */
+  --color-red-500: #ff3241;
+  --color-red-300: #ff8087;
+  --color-red-100: #ffecee;
 
   /* Neutral */
   --color-neutral-900: #1c1630;
