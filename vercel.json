@@ -8,6 +8,7 @@
     { "source": "/calendar", "destination": "http://13.125.246.1:8080/calendar" },
     { "source": "/categories", "destination": "http://13.125.246.1:8080/categories" },
     { "source": "/categories/:path*", "destination": "http://13.125.246.1:8080/categories/:path*" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    
+    { "source": "/:path((?!auth|members|statistics|todos|calendar|categories).*)", "destination": "/index.html" }
   ]
 }
