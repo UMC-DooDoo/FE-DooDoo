@@ -20,16 +20,25 @@ function App() {
     <div className="mx-auto flex max-w-md flex-col gap-6 p-4">
       <Header title="LabelText" onPrev={() => {}} onNext={() => {}} />
 
-      <section className="flex flex-wrap gap-2">
-        <Chip label="공부" />
-        <Chip label="운동" color="green" />
-        <Chip label="약속" color="pink" />
-        <Chip label="공부" color="yellow" />
-        <Chip label="공부" color="purple" />
-        <Chip label="공부" color="cyan" />
-        <Chip label="공부" color="apricot" />
-        <Chip label="공부" size="small" />
-        <Chip label="공부" color="apricot" size="small" />
+      <section className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-14 text-xs text-neutral-400">medium</span>
+          <Chip label="ChipText" />
+          <Chip label="공부" />
+          <Chip label="운동" color="green" />
+          <Chip label="약속" color="pink" />
+          <Chip label="공부" color="yellow" />
+          <Chip label="공부" color="purple" />
+          <Chip label="공부" color="cyan" />
+          <Chip label="공부" color="apricot" />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-14 text-xs text-neutral-400">small</span>
+          <Chip label="공부" size="small" />
+          <Chip label="운동" color="green" size="small" />
+          <Chip label="약속" color="pink" size="small" />
+          <Chip label="공부" color="apricot" size="small" />
+        </div>
       </section>
 
       <section className="flex flex-col gap-2">
