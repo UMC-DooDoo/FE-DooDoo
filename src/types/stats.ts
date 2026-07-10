@@ -1,4 +1,4 @@
-import type { Category } from '../constants/category'
+import type { AccentColor } from '../constants/category'
 import type { Priority } from '../constants/priority'
 
 export interface MonthlyStats {
@@ -15,7 +15,10 @@ export interface DailyStat extends MonthlyStats {
 }
 
 export interface CategoryStat extends MonthlyStats {
-  category: Category
+  /** 분야 이름 (사용자 정의라 고정 목록이 아님) */
+  category: string
+  /** 서버가 내려준 분야 색 */
+  color: AccentColor
 }
 
 export interface PriorityStat extends MonthlyStats {
