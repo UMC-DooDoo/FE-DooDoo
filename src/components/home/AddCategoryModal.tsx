@@ -4,12 +4,13 @@ import Chip from "../common/Chip";
 import { ACCENT_BG, ACCENT_COLORS } from "../../constants/category";
 import type { AccentColor } from "../../constants/category";
 import type { Category } from "../../types/todo";
+import { ApiError } from "../../types/api";
 
 interface AddCategoryModalProps {
   open: boolean;
   existingNames: string[];
   onClose: () => void;
-  onSubmit: (cat: Category) => void;
+  onSubmit: (cat: Category) => Promise<void>;
 }
 
 const MAX_NAME = 30;
@@ -22,17 +23,38 @@ function AddCategoryModal({
 }: AddCategoryModalProps) {
   const [name, setName] = useState("");
   const [color, setColor] = useState<AccentColor>(ACCENT_COLORS[0]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setName("");
       setColor(ACCENT_COLORS[0]);
+      setSubmitting(false);
+      setSubmitError(null);
     }
   }, [open]);
 
   const trimmed = name.trim();
   const duplicated = existingNames.includes(trimmed);
-  const canSubmit = trimmed.length > 0 && !duplicated;
+  const canSubmit = trimmed.length > 0 && !duplicated && !submitting;
+
+  async function handleSubmit() {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await onSubmit({ name: trimmed, color });
+      // 성공하면 부모가 onClose 까지 호출한다.
+    } catch (e) {
+      // 모달은 열어둬서 재시도할 수 있게 한다.
+      setSubmitError(
+        e instanceof ApiError ? e.message : "분야 생성 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <Modal open={open} title="분야 추가" onClose={onClose}>
@@ -73,9 +95,13 @@ function AddCategoryModal({
         <Chip label={trimmed || "놀기"} color={color} />
       </div>
 
+      {submitError && (
+        <p className="text-danger mt-3 text-xs">{submitError}</p>
+      )}
+
       <button
         type="button"
-        onClick={() => canSubmit && onSubmit({ name: trimmed, color })}
+        onClick={handleSubmit}
         disabled={!canSubmit}
         className={`mt-6 h-12 w-full rounded-xl text-sm font-semibold ${
           canSubmit
@@ -83,7 +109,7 @@ function AddCategoryModal({
             : "bg-neutral-100 text-neutral-300"
         }`}
       >
-        분야 만들기
+        {submitting ? "만드는 중..." : "분야 만들기"}
       </button>
     </Modal>
   );
