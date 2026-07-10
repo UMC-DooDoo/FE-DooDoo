@@ -15,3 +15,8 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+
+
+<img width="368" height="809" alt="image" src="https://github.com/user-attachments/assets/0d533ed8-215f-45dc-9644-19b174648275" />
+
+<img width="369" height="808" alt="image" src="https://github.com/user-attachments/assets/dc512b81-8fd6-4f7a-9ae3-afbfa298c52a" />
