@@ -1,11 +1,11 @@
 import Chip from './Chip'
-import type { ChipColor } from './Chip'
+import type { AccentColor } from '../../constants/category'
 
 interface ListItemProps {
   label: string
   checked?: boolean
   chipLabel?: string
-  chipColor?: ChipColor
+  chipColor?: AccentColor
   onToggle?: () => void
 }
 

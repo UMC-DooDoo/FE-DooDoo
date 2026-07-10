@@ -1,22 +1,14 @@
-type ChipColor =
-  | 'blue'
-  | 'green'
-  | 'pink'
-  | 'yellow'
-  | 'purple'
-  | 'cyan'
-  | 'apricot'
-  | 'red'
+import type { AccentColor } from '../../constants/category'
 
-const chipColors: Record<ChipColor, string> = {
+// 점·진행바(ACCENT_BG/ACCENT_TEXT)와 같은 AccentColor 를 쓴다.
+// 칩은 색 대비 배경이 필요해서 톤만 다르게(연한 배경 + 진한 글자) 별도로 둔다.
+const chipColors: Record<AccentColor, string> = {
   blue: 'text-blue-500 bg-blue-50',
   green: 'text-green-500 bg-green-100',
-  pink: 'text-pink-500 bg-pink-100',
-  yellow: 'text-yellow-500 bg-yellow-100',
-  purple: 'text-purple-500 bg-purple-100',
-  cyan: 'text-cyan-500 bg-cyan-100',
   apricot: 'text-apricot-500 bg-apricot-100',
+  purple: 'text-purple-500 bg-purple-100',
   red: 'text-red-500 bg-red-100',
+  neutral: 'text-neutral-500 bg-neutral-100',
 }
 
 type ChipSize = 'medium' | 'small'
@@ -29,7 +21,7 @@ const chipSizes: Record<ChipSize, string> = {
 
 interface ChipProps {
   label: string
-  color?: ChipColor
+  color?: AccentColor
   size?: ChipSize
 }
 
@@ -44,4 +36,4 @@ function Chip({ label, color = 'blue', size = 'medium' }: ChipProps) {
 }
 
 export default Chip
-export type { ChipColor, ChipSize }
+export type { ChipSize }

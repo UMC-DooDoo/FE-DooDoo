@@ -1,11 +1,12 @@
 import { useState } from "react";
 import Toggle from "../components/common/Toggle";
 import ListItem from "../components/common/ListItem";
-import AddTaskModal from "../components/home/AddTaskModal";
-import AddCategoryModal from "../components/home/AddCategoryModal";
-import type { ChipColor } from "../components/common/Chip";
-import type { Category, Priority, Todo } from "../types/todo";
-import { PRIORITY_META } from "../types/todo";
+import Header from "../components/common/Header";
+import DateCell from "../components/common/DateCell";
+import { ACCENT_BG, CATEGORY_COLOR } from "../constants/category";
+import type { Category } from "../constants/category";
+import { PRIORITIES, PRIORITY_COLOR } from "../constants/priority";
+import type { Priority } from "../constants/priority";
 
 // ---------- 날짜 유틸 ----------
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -39,13 +40,15 @@ function getWeekOf(date: Date) {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 }
 
-// ---------- 초기 데이터 (API 연동 전 더미) ----------
-const INITIAL_CATEGORIES: Category[] = [
-  { name: "공부", color: "blue" },
-  { name: "운동", color: "green" },
-  { name: "일", color: "yellow" },
-  { name: "집안일", color: "purple" },
-];
+// ---------- 할 일 데이터 (API 연동 전 더미) ----------
+interface Todo {
+  id: number;
+  title: string;
+  date: string; // YYYY-MM-DD
+  category: Category;
+  priority: Priority;
+  done: boolean;
+}
 
 const todayKey = (offset: number) => toKey(addDays(new Date(), offset));
 
@@ -142,14 +145,12 @@ function HomePage() {
   // 그룹핑: 우선순위별 또는 분야별
   const groups =
     grouping === "우선순위"
-      ? ([1, 2, 3, 4] as Priority[])
-          .map((p) => ({
-            key: String(p),
-            label: PRIORITY_META[p].label,
-            dot: PRIORITY_META[p].dot as string | undefined,
-            items: selectedTodos.filter((t) => t.priority === p),
-          }))
-          .filter((g) => g.items.length > 0)
+      ? PRIORITIES.map((p) => ({
+          key: String(p),
+          label: `${p}순위`,
+          dot: ACCENT_BG[PRIORITY_COLOR[p]] as string | undefined,
+          items: selectedTodos.filter((t) => t.priority === p),
+        })).filter((g) => g.items.length > 0)
       : [...new Set(selectedTodos.map((t) => t.category))].map((c) => ({
           key: c,
           label: c,
@@ -186,31 +187,12 @@ function HomePage() {
       </div>
 
       {/* 월 이동 내비게이션 */}
-      <div className="flex items-center justify-center gap-8 py-2">
-        <button
-          type="button"
-          aria-label="이전"
-          onClick={() => (view === "월" ? moveMonth(-1) : moveWeek(-1))}
-          className="p-2 text-neutral-400"
-        >
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <span className="text-base font-semibold">
-          {viewYM.year}년 {viewYM.month + 1}월
-        </span>
-        <button
-          type="button"
-          aria-label="다음"
-          onClick={() => (view === "월" ? moveMonth(1) : moveWeek(1))}
-          className="p-2 text-neutral-400"
-        >
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-            <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </div>
+      <Header
+        title={`${viewYM.year}년 ${String(viewYM.month + 1).padStart(2, "0")}월`}
+        onPrev={() => (view === "월" ? moveMonth(-1) : moveWeek(-1))}
+        onNext={() => (view === "월" ? moveMonth(1) : moveWeek(1))}
+        className="py-2"
+      />
 
       {/* 캘린더 */}
       <div className="px-4 pb-3">
@@ -241,40 +223,24 @@ function HomePage() {
               .sort()
               .slice(0, 3);
 
+            const textClassName = !inMonth
+              ? "text-neutral-200"
+              : date.getDay() === 0
+                ? "text-danger"
+                : date.getDay() === 6
+                  ? "text-blue-500"
+                  : "text-neutral-900";
+
             return (
-              <button
+              <DateCell
                 key={key}
-                type="button"
+                day={date.getDate()}
+                selected={isSelected}
+                textClassName={textClassName}
+                dotColors={dots.map((p) => ACCENT_BG[PRIORITY_COLOR[p]])}
+                dimDots={allDone}
                 onClick={() => selectDay(date)}
-                className="flex flex-col items-center gap-0.5 py-1"
-              >
-                <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
-                    isSelected
-                      ? "bg-blue-500 font-semibold text-white"
-                      : !inMonth
-                        ? "text-neutral-200"
-                        : date.getDay() === 0
-                          ? "text-danger"
-                          : date.getDay() === 6
-                            ? "text-blue-500"
-                            : "text-neutral-900"
-                  }`}
-                >
-                  {date.getDate()}
-                </span>
-                <span className="flex h-1.5 items-center gap-0.5">
-                  {dayTodos.length > 0 &&
-                    dots.map((p) => (
-                      <span
-                        key={p}
-                        className={`h-1.5 w-1.5 rounded-full ${PRIORITY_META[p].dot} ${
-                          allDone ? "opacity-30" : ""
-                        }`}
-                      />
-                    ))}
-                </span>
-              </button>
+              />
             );
           })}
         </div>
@@ -327,7 +293,7 @@ function HomePage() {
                     label={todo.title}
                     checked={todo.done}
                     chipLabel={todo.category}
-                    chipColor={categoryColor(todo.category)}
+                    chipColor={CATEGORY_COLOR[todo.category]}
                     onToggle={() => toggleTodo(todo.id)}
                   />
                 ))}
@@ -340,8 +306,7 @@ function HomePage() {
         <button
           type="button"
           aria-label="할 일 추가"
-          onClick={() => setShowAddTask(true)}
-          className="sticky bottom-20 z-10 mt-auto mb-4 flex h-12 w-12 items-center justify-center self-end rounded-2xl bg-blue-500 text-white shadow-lg active:bg-blue-600"
+          className="sticky bottom-20 z-10 mt-auto mb-4 flex h-12 w-12 items-center justify-center self-end rounded-lg bg-blue-500 text-white shadow-lg active:bg-blue-600"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
