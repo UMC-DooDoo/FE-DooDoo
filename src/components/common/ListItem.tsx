@@ -18,7 +18,7 @@ function ListItem({
 }: ListItemProps) {
   return (
     <div
-      className={`flex w-full items-center gap-3 rounded-xl bg-white px-4 py-3 ${
+      className={`flex w-full items-center gap-3 rounded-xl border border-neutral-100 bg-white px-4 py-3 ${
         checked ? 'opacity-40' : ''
       }`}
     >
@@ -42,7 +42,13 @@ function ListItem({
           </svg>
         )}
       </button>
-      <span className="flex-1 text-left text-sm text-neutral-900">{label}</span>
+      <span
+        className={`flex-1 text-left text-sm ${
+          checked ? 'text-neutral-400 line-through' : 'text-neutral-900'
+        }`}
+      >
+        {label}
+      </span>
       {chipLabel && <Chip label={chipLabel} color={chipColor} />}
     </div>
   )
