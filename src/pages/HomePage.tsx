@@ -198,7 +198,7 @@ function HomePage() {
           </svg>
         </button>
         <span className="text-base font-semibold">
-          {viewYM.year}년 {String(viewYM.month + 1).padStart(2, "0")}월
+          {viewYM.year}년 {viewYM.month + 1}월
         </span>
         <button
           type="button"
