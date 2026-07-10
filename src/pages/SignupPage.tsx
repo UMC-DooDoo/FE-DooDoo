@@ -4,12 +4,16 @@ import Input from "../components/common/Input";
 import Button from "../components/common/Button";
 import CheckPoint from "../components/common/CheckPoint";
 import PhoneFrame from "../components/layout/PhoneFrame";
+import { signup } from "../api/auth";
+import { ApiError } from "../types/api";
 
 function SignupPage() {
   const navigate = useNavigate();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // 아이디: 영문, 숫자, 문자 등 4자 이상
   const idValid = id.length >= 4;
@@ -28,9 +32,19 @@ function SignupPage() {
 
   const canSubmit = idValid && pwValid && nickValid;
 
-  function handleSignup() {
-    // TODO: 회원가입 API 연동
-    navigate("/");
+  async function handleSignup() {
+    setError("");
+    setLoading(true);
+    try {
+      await signup(id, password, nickname);
+      navigate("/login");
+    } catch (e) {
+      setError(
+        e instanceof ApiError ? e.message : "회원가입 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -98,8 +112,10 @@ function SignupPage() {
           </div>
         </section>
 
-        <Button disabled={!canSubmit} onClick={handleSignup}>
-          회원가입
+        {error && <p className="text-xs text-danger">{error}</p>}
+
+        <Button disabled={!canSubmit || loading} onClick={handleSignup}>
+          {loading ? "가입 중..." : "회원가입"}
         </Button>
       </div>
     </PhoneFrame>

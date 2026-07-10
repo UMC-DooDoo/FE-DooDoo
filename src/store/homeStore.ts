@@ -1,145 +1,131 @@
 import { create } from "zustand";
 import { addDays, toKey } from "../utils/date";
-import { CATEGORIES, CATEGORY_COLOR } from "../constants/category";
+import {
+  getMonthlyCalendar,
+  createTodo,
+  toggleComplete,
+  deleteTodo as apiDeleteTodo,
+} from "../api/todo";
+import type { CalendarDay } from "../api/todo";
+import {
+  getCategories,
+  createCategory,
+  deleteCategory as apiDeleteCategory,
+} from "../api/category";
+import type { CategoryItem } from "../api/category";
+import { getGroupedByCategory, getGroupedByPriority } from "../api/grouping";
+import type { Group } from "../api/grouping";
+import { ApiError } from "../types/api";
+import type { AccentColor } from "../constants/category";
 import type { Priority } from "../constants/priority";
-import type { Category, Todo } from "../types/todo";
-
-const INITIAL_CATEGORIES: Category[] = CATEGORIES.map((name) => ({
-  name,
-  color: CATEGORY_COLOR[name],
-}));
-
-const todayKey = (offset: number) => toKey(addDays(new Date(), offset));
-
-const INITIAL_TODOS: Todo[] = [
-  {
-    id: 1,
-    title: "알고리즘 문제 풀기",
-    date: todayKey(0),
-    category: "공부",
-    priority: 1,
-    done: false,
-  },
-  {
-    id: 2,
-    title: "주간 보고서 작성",
-    date: todayKey(0),
-    category: "일",
-    priority: 1,
-    done: false,
-  },
-  {
-    id: 3,
-    title: "30분 달리기",
-    date: todayKey(0),
-    category: "운동",
-    priority: 2,
-    done: true,
-  },
-  {
-    id: 4,
-    title: "청소기 돌리기",
-    date: todayKey(0),
-    category: "집안일",
-    priority: 3,
-    done: false,
-  },
-  {
-    id: 5,
-    title: "영어 단어 암기",
-    date: todayKey(1),
-    category: "공부",
-    priority: 2,
-    done: false,
-  },
-  {
-    id: 6,
-    title: "PT 수업",
-    date: todayKey(-1),
-    category: "운동",
-    priority: 1,
-    done: true,
-  },
-  {
-    id: 7,
-    title: "회의 자료 준비",
-    date: todayKey(2),
-    category: "일",
-    priority: 4,
-    done: false,
-  },
-  {
-    id: 8,
-    title: "책 30쪽 읽기",
-    date: todayKey(3),
-    category: "공부",
-    priority: 3,
-    done: false,
-  },
-];
 
 const today = new Date();
 
+function monthStr(year: number, month: number) {
+  return `${year}-${String(month + 1).padStart(2, "0")}`;
+}
+
+function messageOf(e: unknown) {
+  return e instanceof ApiError ? e.message : "요청 중 오류가 발생했습니다.";
+}
+
 interface HomeStore {
-  todos: Todo[];
-  categories: Category[];
+  categories: CategoryItem[];
+  calendarDays: CalendarDay[];
+  groups: Group[];
+  total: number;
+  completed: number;
   view: string;
   grouping: string;
   selected: Date;
   viewYM: { year: number; month: number };
+  loading: boolean;
+  error: string | null;
 
-  toggleTodo: (id: number) => void;
-  addTodo: (data: {
-    title: string;
-    category: string;
-    priority: Priority;
-  }) => void;
-  addCategory: (cat: Category) => void;
+  init: () => Promise<void>;
+  reloadCalendar: () => Promise<void>;
+  reloadGroups: () => Promise<void>;
+
   selectDay: (date: Date) => void;
   moveMonth: (delta: number) => void;
   moveWeek: (delta: number) => void;
   setView: (view: string) => void;
   setGrouping: (grouping: string) => void;
+
+  toggleTodo: (id: number) => Promise<void>;
+  deleteTodo: (id: number) => Promise<void>;
+  addTodo: (data: {
+    title: string;
+    categoryId: number;
+    priority: Priority;
+  }) => Promise<void>;
+  addCategory: (name: string, color: AccentColor) => Promise<CategoryItem>;
+  deleteCategory: (id: number) => Promise<void>;
 }
 
 export const useHomeStore = create<HomeStore>((set, get) => ({
-  todos: INITIAL_TODOS,
-  categories: INITIAL_CATEGORIES,
+  categories: [],
+  calendarDays: [],
+  groups: [],
+  total: 0,
+  completed: 0,
   view: "월",
   grouping: "우선순위",
   selected: today,
   viewYM: { year: today.getFullYear(), month: today.getMonth() },
+  loading: false,
+  error: null,
 
-  toggleTodo: (id) =>
-    set((state) => ({
-      todos: state.todos.map((t) =>
-        t.id === id ? { ...t, done: !t.done } : t,
-      ),
-    })),
+  init: async () => {
+    set({ loading: true, error: null });
+    try {
+      const categories = await getCategories();
+      set({ categories });
+      await Promise.all([get().reloadCalendar(), get().reloadGroups()]);
+    } catch (e) {
+      set({ error: messageOf(e) });
+    } finally {
+      set({ loading: false });
+    }
+  },
 
-  addTodo: (data) =>
-    set((state) => ({
-      todos: [
-        ...state.todos,
-        {
-          id: state.todos.reduce((max, t) => Math.max(max, t.id), 0) + 1,
-          title: data.title,
-          date: toKey(state.selected),
-          category: data.category,
-          priority: data.priority,
-          done: false,
-        },
-      ],
-    })),
+  reloadCalendar: async () => {
+    const { viewYM } = get();
+    try {
+      const calendarDays = await getMonthlyCalendar(
+        monthStr(viewYM.year, viewYM.month),
+      );
+      set({ calendarDays });
+    } catch (e) {
+      set({ error: messageOf(e) });
+    }
+  },
 
-  addCategory: (cat) =>
-    set((state) => ({ categories: [...state.categories, cat] })),
+  reloadGroups: async () => {
+    const { selected, grouping } = get();
+    const date = toKey(selected);
+    try {
+      const groups =
+        grouping === "우선순위"
+          ? await getGroupedByPriority(date)
+          : await getGroupedByCategory(date);
+      const total = groups.reduce((s, g) => s + g.total, 0);
+      const completed = groups.reduce((s, g) => s + g.completed, 0);
+      set({ groups, total, completed });
+    } catch (e) {
+      set({ error: messageOf(e) });
+    }
+  },
 
-  selectDay: (date) =>
+  selectDay: (date) => {
+    const monthChanged = date.getMonth() !== get().viewYM.month;
     set({
       selected: date,
       viewYM: { year: date.getFullYear(), month: date.getMonth() },
-    }),
+    });
+    get().reloadGroups();
+    if (monthChanged) get().reloadCalendar();
+  },
 
   moveMonth: (delta) => {
     const { viewYM } = get();
@@ -152,6 +138,8 @@ export const useHomeStore = create<HomeStore>((set, get) => ({
       viewYM: { year: next.getFullYear(), month: next.getMonth() },
       selected: isThisMonth ? now : next,
     });
+    get().reloadCalendar();
+    get().reloadGroups();
   },
 
   moveWeek: (delta) => {
@@ -159,5 +147,59 @@ export const useHomeStore = create<HomeStore>((set, get) => ({
   },
 
   setView: (view) => set({ view }),
-  setGrouping: (grouping) => set({ grouping }),
+
+  setGrouping: (grouping) => {
+    set({ grouping });
+    get().reloadGroups();
+  },
+
+  toggleTodo: async (id) => {
+    try {
+      await toggleComplete(id);
+      await Promise.all([get().reloadGroups(), get().reloadCalendar()]);
+    } catch (e) {
+      set({ error: messageOf(e) });
+    }
+  },
+
+  deleteTodo: async (id) => {
+    try {
+      await apiDeleteTodo(id);
+      await Promise.all([get().reloadGroups(), get().reloadCalendar()]);
+    } catch (e) {
+      set({ error: messageOf(e) });
+    }
+  },
+
+  addTodo: async (data) => {
+    try {
+      await createTodo({
+        categoryId: data.categoryId,
+        title: data.title,
+        taskDate: toKey(get().selected),
+        priority: data.priority,
+      });
+      await Promise.all([get().reloadGroups(), get().reloadCalendar()]);
+    } catch (e) {
+      set({ error: messageOf(e) });
+    }
+  },
+
+  addCategory: async (name, color) => {
+    const created = await createCategory(name, color);
+    set((state) => ({ categories: [...state.categories, created] }));
+    return created;
+  },
+
+  deleteCategory: async (id) => {
+    try {
+      await apiDeleteCategory(id);
+      set((state) => ({
+        categories: state.categories.filter((c) => c.id !== id),
+      }));
+      await get().reloadGroups();
+    } catch (e) {
+      set({ error: messageOf(e) });
+    }
+  },
 }));
