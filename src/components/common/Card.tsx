@@ -1,13 +1,12 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 interface CardProps {
-  /** 있으면 카드 좌상단에 제목을 그린다 */
-  title?: string
-  children: ReactNode
-  className?: string
+  title?: string;
+  children: ReactNode;
+  className?: string;
 }
 
-function Card({ title, children, className = '' }: CardProps) {
+function Card({ title, children, className = "" }: CardProps) {
   return (
     <section
       className={`border-border bg-bg rounded-lg border p-4 ${className}`}
@@ -17,7 +16,7 @@ function Card({ title, children, className = '' }: CardProps) {
       )}
       {children}
     </section>
-  )
+  );
 }
 
-export default Card
+export default Card;

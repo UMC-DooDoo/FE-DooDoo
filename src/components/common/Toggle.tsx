@@ -4,7 +4,6 @@ interface ToggleProps {
   options: [string, string];
   value: string;
   onChange: (value: string) => void;
-  /** 옵션 왼쪽에 붙는 아이콘 (선택) */
   icons?: [ReactNode, ReactNode];
 }
 
@@ -18,7 +17,7 @@ function Toggle({ options, value, onChange, icons }: ToggleProps) {
           onClick={() => onChange(option)}
           className={`flex items-center justify-center gap-1 rounded-full px-3 py-1 text-xs transition-colors ${
             value === option
-              ? "border border-border bg-white font-semibold text-text shadow-sm"
+              ? "border border-border bg-white font-semibold text-text shadow-xs"
               : "border border-transparent text-neutral-300"
           }`}
         >

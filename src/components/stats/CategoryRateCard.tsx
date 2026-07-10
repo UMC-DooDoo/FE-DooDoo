@@ -9,6 +9,16 @@ interface CategoryRateCardProps {
 }
 
 function CategoryRateCard({ stats }: CategoryRateCardProps) {
+  if (stats.length === 0) {
+    return (
+      <Card title="분야별 달성률">
+        <p className="py-8 text-center text-sm text-neutral-300">
+          이번 달에 등록된 분야별 목표가 없습니다.
+        </p>
+      </Card>
+    )
+  }
+
   return (
     <Card title="분야별 달성률">
       <ul className="flex flex-col gap-4">
