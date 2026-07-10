@@ -1,22 +1,20 @@
-import { ACCENT_BG } from '../../constants/category'
-import type { AccentColor } from '../../constants/category'
+import { ACCENT_BG } from "../../constants/category";
+import type { AccentColor } from "../../constants/category";
 
 interface ProgressBarProps {
-  /** 0 ~ 100 */
-  value: number
-  color?: AccentColor
-  /** 트랙(빈 부분) 배경. 카드 위에 얹을 땐 밝은 색이 필요하다. */
-  trackClassName?: string
-  className?: string
+  value: number;
+  color?: AccentColor;
+  trackClassName?: string;
+  className?: string;
 }
 
 function ProgressBar({
   value,
-  color = 'blue',
-  trackClassName = 'bg-neutral-100',
-  className = '',
+  color = "blue",
+  trackClassName = "bg-neutral-100",
+  className = "",
 }: ProgressBarProps) {
-  const clamped = Math.min(100, Math.max(0, value))
+  const clamped = Math.min(100, Math.max(0, value));
 
   return (
     <div
@@ -31,7 +29,7 @@ function ProgressBar({
         style={{ width: `${clamped}%` }}
       />
     </div>
-  )
+  );
 }
 
-export default ProgressBar
+export default ProgressBar;

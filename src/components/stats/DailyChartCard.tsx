@@ -1,16 +1,15 @@
-import Card from '../common/Card'
-import type { DailyStat } from '../../types/stats'
+import Card from "../common/Card";
+import type { DailyStat } from "../../types/stats";
 
 /** x축에 숫자를 노출할 날짜 */
-const AXIS_DAYS = [1, 6, 11, 16, 21, 26]
+const AXIS_DAYS = [1, 6, 11, 16, 21, 26];
 
 interface DailyChartCardProps {
-  days: DailyStat[]
+  days: DailyStat[];
 }
 
 function DailyChartCard({ days }: DailyChartCardProps) {
-  // 가장 할 일이 많은 날을 100% 높이로 잡는다. 전부 0이면 1로 둬서 0 나누기를 막는다.
-  const maxTotal = Math.max(1, ...days.map((d) => d.total))
+  const maxTotal = Math.max(1, ...days.map((d) => d.total));
 
   return (
     <Card title="일별 달성 현황">
@@ -38,7 +37,7 @@ function DailyChartCard({ days }: DailyChartCardProps) {
             key={day}
             className="flex-1 text-center text-[10px] text-neutral-400"
           >
-            {AXIS_DAYS.includes(day) ? day : ''}
+            {AXIS_DAYS.includes(day) ? day : ""}
           </li>
         ))}
       </ul>
@@ -54,7 +53,7 @@ function DailyChartCard({ days }: DailyChartCardProps) {
         </li>
       </ul>
     </Card>
-  )
+  );
 }
 
-export default DailyChartCard
+export default DailyChartCard;

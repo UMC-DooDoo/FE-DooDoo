@@ -1,25 +1,30 @@
-type CheckPointStatus = 'valid' | 'invalid' | 'idle'
+type CheckPointStatus = "valid" | "invalid" | "idle";
 
 const STATUS_CLASS: Record<CheckPointStatus, string> = {
-  valid: 'text-success',
-  invalid: 'text-danger',
-  idle: 'text-neutral-300',
-}
+  valid: "text-success",
+  invalid: "text-danger",
+  idle: "text-neutral-300",
+};
 
 interface CheckPointProps {
-  text: string
-  /** valid: 초록 체크, invalid: 빨강 체크, idle: 회색 동그라미(아직 미충족) */
-  status?: CheckPointStatus
+  text: string;
+  status?: CheckPointStatus;
 }
 
-function CheckPoint({ text, status = 'valid' }: CheckPointProps) {
+function CheckPoint({ text, status = "valid" }: CheckPointProps) {
   return (
     <span
       className={`inline-flex items-center gap-1 text-xs ${STATUS_CLASS[status]}`}
     >
-      {status === 'idle' ? (
+      {status === "idle" ? (
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+          <circle
+            cx="6"
+            cy="6"
+            r="4.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
         </svg>
       ) : (
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -34,8 +39,8 @@ function CheckPoint({ text, status = 'valid' }: CheckPointProps) {
       )}
       {text}
     </span>
-  )
+  );
 }
 
-export default CheckPoint
-export type { CheckPointStatus }
+export default CheckPoint;
+export type { CheckPointStatus };

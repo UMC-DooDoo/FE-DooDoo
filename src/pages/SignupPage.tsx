@@ -30,7 +30,7 @@ function SignupPage() {
 
   function handleSignup() {
     // TODO: 회원가입 API 연동
-    navigate("/login");
+    navigate("/");
   }
 
   return (

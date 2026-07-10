@@ -10,11 +10,14 @@ import type { Category } from "../../types/todo";
 interface AddTaskModalProps {
   open: boolean;
   categories: Category[];
-  /** 방금 추가된 분야 이름 — 있으면 자동 선택 */
   selectHint: string | null;
   onClose: () => void;
   onRequestAddCategory: () => void;
-  onSubmit: (data: { title: string; category: string; priority: Priority }) => void;
+  onSubmit: (data: {
+    title: string;
+    category: string;
+    priority: Priority;
+  }) => void;
 }
 
 const MAX_TITLE = 30;
@@ -31,7 +34,6 @@ function AddTaskModal({
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState<Priority>(1);
 
-  // 모달 열릴 때 폼 초기화
   useEffect(() => {
     if (open) {
       setTitle("");
@@ -40,7 +42,6 @@ function AddTaskModal({
     }
   }, [open]);
 
-  // 새 분야가 추가되면 자동 선택
   useEffect(() => {
     if (selectHint) setCategory(selectHint);
   }, [selectHint]);
@@ -61,7 +62,6 @@ function AddTaskModal({
 
   return (
     <Modal open={open} title="할 일 추가" onClose={attemptClose}>
-      {/* 할 일 입력 */}
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-semibold text-neutral-600">할 일</span>
         <input
@@ -72,7 +72,6 @@ function AddTaskModal({
         />
       </label>
 
-      {/* 분야 */}
       <div className="mt-4 flex items-center justify-between">
         <span className="text-xs font-semibold text-neutral-600">분야</span>
         <button
@@ -91,12 +90,15 @@ function AddTaskModal({
             onClick={() => setCategory(c.name)}
             className="shrink-0"
           >
-            <Chip label={c.name} color={c.color} selected={category === c.name} />
+            <Chip
+              label={c.name}
+              color={c.color}
+              selected={category === c.name}
+            />
           </button>
         ))}
       </div>
 
-      {/* 우선순위 */}
       <span className="mt-4 block text-xs font-semibold text-neutral-600">
         우선순위
       </span>

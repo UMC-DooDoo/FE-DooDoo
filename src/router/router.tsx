@@ -6,7 +6,6 @@ import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 
 const router = createBrowserRouter([
-  // 온보딩은 하단 탭바 없이 단독 화면
   { path: "/login", element: <LoginPage /> },
   { path: "/signup", element: <SignupPage /> },
   {
