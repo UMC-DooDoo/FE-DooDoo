@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/auth/:path*", "destination": "http://13.125.246.1:8080/auth/:path*" },
+    { "source": "/members/:path*", "destination": "http://13.125.246.1:8080/members/:path*" },
+    { "source": "/statistics/:path*", "destination": "http://13.125.246.1:8080/statistics/:path*" },
+    { "source": "/todos", "destination": "http://13.125.246.1:8080/todos" },
+    { "source": "/todos/:path*", "destination": "http://13.125.246.1:8080/todos/:path*" },
+    { "source": "/calendar", "destination": "http://13.125.246.1:8080/calendar" },
+    { "source": "/categories", "destination": "http://13.125.246.1:8080/categories" },
+    { "source": "/categories/:path*", "destination": "http://13.125.246.1:8080/categories/:path*" }
+  ]
+}
