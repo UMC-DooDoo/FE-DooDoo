@@ -2,11 +2,15 @@ import { useState } from "react";
 import Toggle from "../components/common/Toggle";
 import ListItem from "../components/common/ListItem";
 import Header from "../components/common/Header";
+import PageTitle from "../components/common/PageTitle";
 import DateCell from "../components/common/DateCell";
-import { ACCENT_BG, CATEGORY_COLOR } from "../constants/category";
-import type { Category } from "../constants/category";
+import AddTaskModal from "../components/home/AddTaskModal";
+import AddCategoryModal from "../components/home/AddCategoryModal";
+import { ACCENT_BG, CATEGORIES, CATEGORY_COLOR } from "../constants/category";
+import type { AccentColor } from "../constants/category";
 import { PRIORITIES, PRIORITY_COLOR } from "../constants/priority";
 import type { Priority } from "../constants/priority";
+import type { Category, Todo } from "../types/todo";
 
 // ---------- 날짜 유틸 ----------
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -41,14 +45,10 @@ function getWeekOf(date: Date) {
 }
 
 // ---------- 할 일 데이터 (API 연동 전 더미) ----------
-interface Todo {
-  id: number;
-  title: string;
-  date: string; // YYYY-MM-DD
-  category: Category;
-  priority: Priority;
-  done: boolean;
-}
+const INITIAL_CATEGORIES: Category[] = CATEGORIES.map((name) => ({
+  name,
+  color: CATEGORY_COLOR[name],
+}));
 
 const todayKey = (offset: number) => toKey(addDays(new Date(), offset));
 
@@ -81,7 +81,7 @@ function HomePage() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryHint, setNewCategoryHint] = useState<string | null>(null);
 
-  const categoryColor = (name: string): ChipColor =>
+  const categoryColor = (name: string): AccentColor =>
     categories.find((c) => c.name === name)?.color ?? "blue";
 
   const byDate = new Map<string, Todo[]>();
@@ -162,40 +162,37 @@ function HomePage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* 상단: 타이틀 + 월/주 토글 */}
-      <div className="flex items-end justify-between px-4 pt-5 pb-2">
-        <div>
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-neutral-400">
-            MY TASKS
-          </p>
-          <h1 className="text-xl font-bold">할 일</h1>
+      {/* 상단: 타이틀 + 월/주 토글 + 월 이동 내비게이션. 통계 페이지와 동일한
+       * px-5 pt-4 gap-4 컨테이너를 써서 탭 전환 시 PageTitle 위치가 흔들리지 않는다. */}
+      <div className="flex flex-col gap-4 px-5 pt-4">
+        <div className="flex items-end justify-between">
+          <PageTitle eyebrow="MY TASKS" title="할 일" />
+          <Toggle
+            options={["월", "주"]}
+            value={view}
+            onChange={setView}
+            icons={[
+              <svg key="m" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M2 6.5H14M5.5 1.5V4M10.5 1.5V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>,
+              <svg key="w" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M3 4.5H13M3 8H13M3 11.5H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>,
+            ]}
+          />
         </div>
-        <Toggle
-          options={["월", "주"]}
-          value={view}
-          onChange={setView}
-          icons={[
-            <svg key="m" width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M2 6.5H14M5.5 1.5V4M10.5 1.5V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>,
-            <svg key="w" width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <path d="M3 4.5H13M3 8H13M3 11.5H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>,
-          ]}
+
+        <Header
+          title={`${viewYM.year}년 ${viewYM.month + 1}월`}
+          onPrev={() => (view === "월" ? moveMonth(-1) : moveWeek(-1))}
+          onNext={() => (view === "월" ? moveMonth(1) : moveWeek(1))}
+          className="py-3"
         />
       </div>
 
-      {/* 월 이동 내비게이션 */}
-      <Header
-        title={`${viewYM.year}년 ${String(viewYM.month + 1).padStart(2, "0")}월`}
-        onPrev={() => (view === "월" ? moveMonth(-1) : moveWeek(-1))}
-        onNext={() => (view === "월" ? moveMonth(1) : moveWeek(1))}
-        className="py-2"
-      />
-
       {/* 캘린더 */}
-      <div className="px-4 pb-3">
+      <div className="px-5 pt-4 pb-3">
         <div className="grid grid-cols-7">
           {WEEKDAYS.map((w, i) => (
             <span
@@ -219,9 +216,7 @@ function HomePage() {
             const isSelected = key === toKey(selected);
             const dayTodos = byDate.get(key) ?? [];
             const allDone = dayTodos.length > 0 && dayTodos.every((t) => t.done);
-            const dots = [...new Set(dayTodos.map((t) => t.priority))]
-              .sort()
-              .slice(0, 3);
+            const dots = [...new Set(dayTodos.map((t) => t.category))].slice(0, 3);
 
             const textClassName = !inMonth
               ? "text-neutral-200"
@@ -237,7 +232,7 @@ function HomePage() {
                 day={date.getDate()}
                 selected={isSelected}
                 textClassName={textClassName}
-                dotColors={dots.map((p) => ACCENT_BG[PRIORITY_COLOR[p]])}
+                dotColors={dots.map((c) => ACCENT_BG[categoryColor(c)])}
                 dimDots={allDone}
                 onClick={() => selectDay(date)}
               />
@@ -247,7 +242,7 @@ function HomePage() {
       </div>
 
       {/* 선택 날짜의 할 일 목록 */}
-      <section className="flex flex-1 flex-col border-t border-neutral-100 px-4 pt-4">
+      <section className="flex flex-1 flex-col border-t border-neutral-100 px-5 pt-4">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs text-neutral-400">{dateTitle}</p>
@@ -293,7 +288,7 @@ function HomePage() {
                     label={todo.title}
                     checked={todo.done}
                     chipLabel={todo.category}
-                    chipColor={CATEGORY_COLOR[todo.category]}
+                    chipColor={categoryColor(todo.category)}
                     onToggle={() => toggleTodo(todo.id)}
                   />
                 ))}
@@ -306,6 +301,7 @@ function HomePage() {
         <button
           type="button"
           aria-label="할 일 추가"
+          onClick={() => setShowAddTask(true)}
           className="sticky bottom-20 z-10 mt-auto mb-4 flex h-12 w-12 items-center justify-center self-end rounded-lg bg-blue-500 text-white shadow-lg active:bg-blue-600"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">

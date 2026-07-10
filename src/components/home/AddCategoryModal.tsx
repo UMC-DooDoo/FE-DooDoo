@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import Modal from "../common/Modal";
 import Chip from "../common/Chip";
-import type { ChipColor } from "../common/Chip";
+import { ACCENT_BG, ACCENT_COLORS } from "../../constants/category";
+import type { AccentColor } from "../../constants/category";
 import type { Category } from "../../types/todo";
-import { CATEGORY_PALETTE, CHIP_SWATCH } from "../../types/todo";
 
 interface AddCategoryModalProps {
   open: boolean;
@@ -21,12 +21,12 @@ function AddCategoryModal({
   onSubmit,
 }: AddCategoryModalProps) {
   const [name, setName] = useState("");
-  const [color, setColor] = useState<ChipColor>(CATEGORY_PALETTE[0]);
+  const [color, setColor] = useState<AccentColor>(ACCENT_COLORS[0]);
 
   useEffect(() => {
     if (open) {
       setName("");
-      setColor(CATEGORY_PALETTE[0]);
+      setColor(ACCENT_COLORS[0]);
     }
   }, [open]);
 
@@ -55,13 +55,13 @@ function AddCategoryModal({
         색상
       </span>
       <div className="mt-2 flex flex-wrap gap-3">
-        {CATEGORY_PALETTE.map((c) => (
+        {ACCENT_COLORS.map((c) => (
           <button
             key={c}
             type="button"
             aria-label={c}
             onClick={() => setColor(c)}
-            className={`h-8 w-8 rounded-full ${CHIP_SWATCH[c]} ${
+            className={`h-8 w-8 rounded-full ${ACCENT_BG[c]} ${
               color === c ? "ring-2 ring-neutral-900 ring-offset-2" : ""
             }`}
           />

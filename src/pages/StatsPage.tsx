@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Header from '../components/common/Header'
+import PageTitle from '../components/common/PageTitle'
 import SummaryBanner from '../components/stats/SummaryBanner'
 import CompletionCard from '../components/stats/CompletionCard'
 import DailyChartCard from '../components/stats/DailyChartCard'
@@ -68,18 +69,13 @@ function StatsPage() {
 
   return (
     <div className="flex flex-col gap-4 px-5 pt-4 pb-6">
-      <header>
-        <p className="text-xs font-bold tracking-wider text-neutral-400">
-          STATISTICS
-        </p>
-        <h1 className="text-xl font-bold text-neutral-900">월별 통계</h1>
-      </header>
+      <PageTitle eyebrow="STATISTICS" title="월별 통계" />
 
       <Header
         title={`${year}년 ${month}월`}
         onPrev={() => moveMonth(-1)}
         onNext={() => moveMonth(1)}
-        className="rounded-lg bg-neutral-100 px-2 py-3"
+        className="py-3"
       />
 
       <SummaryBanner rate={rate} />
